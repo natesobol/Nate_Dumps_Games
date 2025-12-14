@@ -5,48 +5,118 @@
 @inject NavigationManager Nav
 @implements IDisposable
 
-<h1>Trivia Whip</h1>
+<div class="title-hero" style="background-image:url('@_titleBackground')">
+    <div class="title-overlay">
+        <div class="hero-meta">
+            <img class="avatar-display" src="@AvatarImage" alt="Selected avatar" />
+            <div>
+                <div class="hero-title">Trivia Whip</div>
+                <div class="hero-subtitle">@ProfileService.Current.Level.ToString("N0") XP Level • @_progressLabel</div>
+                <div class="buff-strip">
+                    <img src="@IdolIcon" class="idol-icon" alt="Idol" title="Current idol" />
+                    @foreach (var buffIcon in BuffIcons)
+                    {
+                        <img src="@buffIcon" class="buff-icon" alt="Equipped buff" />
+                    }
+                </div>
+            </div>
+        </div>
+        <button class="play-button" @onclick="StartGame">
+            <img src="@AssetCatalog.GetAssetPath("play-button.png")" alt="Play" />
+        </button>
+    </div>
+</div>
 
 <div class="main-card">
-    <p class="text-muted">Coins: @ProfileService.Current.Coins | Level @ProfileService.Current.Level</p>
-    <div class="progress-bar" title="Progress to next milestone">
-        <span style="width:@ProgressPercent%"></span>
+    <div class="stat-grid">
+        <div class="stat-card">
+            <strong>Coins</strong>
+            <div class="stat-row">
+                <img class="icon" src="@AssetCatalog.GetAssetPath("coinico.png")" alt="Coins" />
+                <span>@ProfileService.Current.Coins</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <strong>Progress</strong>
+            <div class="progress-bar" title="Progress to next milestone">
+                <span style="width:@ProgressPercent%"></span>
+            </div>
+            <p class="text-muted">@ProfileService.Current.CorrectCount <img class="inline-icon" src="@AssetCatalog.GetAssetPath("slash.png")" alt="/" /> @NextMilestone</p>
+        </div>
+        <div class="stat-card">
+            <strong>Timer Mode</strong>
+            <div class="stat-row">
+                <img class="icon" src="@AssetCatalog.GetAssetPath(SettingsService.Current.TimerMode ? "timedmode.png" : "question-mark.png")" alt="Timer" />
+                <span>@(SettingsService.Current.TimerMode ? "Enabled" : "Off")</span>
+            </div>
+        </div>
     </div>
-    <p>@ProfileService.Current.CorrectCount / @NextMilestone correct answers</p>
 
-    <div class="button-bar">
-        <button class="primary-button" @onclick="StartGame">Play</button>
-        <button class="secondary-button" @onclick="@(() => Nav.NavigateTo("/categories"))">Categories</button>
-        <button class="secondary-button" @onclick="@(() => Nav.NavigateTo("/store"))">Store</button>
-        <button class="secondary-button" @onclick="@(() => Nav.NavigateTo("/settings"))">Settings</button>
+    <div class="button-bar" style="margin-top:1rem;">
+        <button class="secondary-button" @onclick="@(() => Nav.NavigateTo("/categories"))">
+            <img class="icon" src="@AssetCatalog.GetAssetPath("categoryview.png")" alt="Categories" />
+            Categories
+        </button>
+        <button class="secondary-button" @onclick="@(() => Nav.NavigateTo("/store"))">
+            <img class="icon" src="@AssetCatalog.GetAssetPath("store.png")" alt="Store" />
+            Store
+        </button>
+        <button class="secondary-button" @onclick="@(() => Nav.NavigateTo("/settings"))">
+            <img class="icon" src="@AssetCatalog.GetAssetPath("settings.png")" alt="Settings" />
+            Settings
+        </button>
     </div>
 
     <div class="stat-grid" style="margin-top:1rem;">
         <div class="stat-card">
             <strong>Selected Categories</strong>
-            <p>@string.Join(", ", SettingsService.Current.CategoriesSelected.DefaultIfEmpty("All"))</p>
+            <div class="tag-row">
+                @foreach (var category in SettingsService.Current.CategoriesSelected.DefaultIfEmpty("All"))
+                {
+                    <span class="tag-pill">
+                        <img class="icon" src="@AssetCatalog.GetMainCategoryIcon(category)" alt="Category icon" />
+                        @category
+                    </span>
+                }
+            </div>
         </div>
         <div class="stat-card">
             <strong>Question Count</strong>
-            <p>@SettingsService.Current.QuestionCount</p>
+            <div class="stat-row">
+                <img class="icon" src="@AssetCatalog.GetAssetPath("levellabel.png")" alt="Question count" />
+                <span>@SettingsService.Current.QuestionCount</span>
+            </div>
         </div>
         <div class="stat-card">
-            <strong>Timer Mode</strong>
-            <p>@(SettingsService.Current.TimerMode ? "Enabled" : "Off")</p>
+            <strong>Achievements</strong>
+            <div class="stat-row">
+                <img class="icon" src="@AssetCatalog.GetAssetPath("trophy.png")" alt="Achievements" />
+                <span>@ProfileService.Current.BestStreak.ToString("N0") best streak</span>
+            </div>
         </div>
     </div>
 </div>
 
 @code {
     private bool _initialized;
+    private string _titleBackground = AssetCatalog.GetAssetPath(AssetCatalog.TitleBackgrounds.First());
 
-    private int NextMilestone => ProfileService.Current.Milestones.FirstOrDefault(m => m > ProfileService.Current.CorrectCount, ProfileService.Current.Milestones.LastOrDefault(300));
+    private int NextMilestone => ProfileService.Current.Milestones.FirstOrDefault(m => m > ProfileService.Current.CorrectCount,
+ProfileService.Current.Milestones.LastOrDefault(300));
     private int ProgressPercent => NextMilestone == 0 ? 100 : (int)(Math.Min(1, (double)ProfileService.Current.CorrectCount / NextMilestone) * 100);
+    private string AvatarImage => AssetCatalog.GetAvatar(SettingsService.Current.Avatar);
+    private string IdolIcon => AssetCatalog.GetIdolIcon(ProfileService.Current.IdolLevel);
+    private string _progressLabel => $"{ProfileService.Current.CorrectCount}/{NextMilestone} correct";
+    private IEnumerable<string> BuffIcons => ProfileService.Current.OwnedBuffs.Any()
+        ? ProfileService.Current.OwnedBuffs.Select(AssetCatalog.GetBuffIcon)
+        : new[] { AssetCatalog.GetAssetPath("add buff.png") };
 
     protected override async Task OnInitializedAsync()
     {
         await EnsureLoadedAsync();
         GameEngine.StateChanged += OnChanged;
+        var rng = new Random();
+        _titleBackground = AssetCatalog.GetRandomTitleBackground(rng);
     }
 
     private async Task EnsureLoadedAsync()

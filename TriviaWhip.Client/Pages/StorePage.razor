@@ -5,33 +5,87 @@
 
 <h2>Store</h2>
 <div class="main-card">
-    <p>Coins: @ProfileService.Current.Coins</p>
+    <div class="stat-row" style="margin-bottom:1rem;">
+        <img class="icon" src="@AssetCatalog.GetAssetPath("coinico.png")" alt="Coins" />
+        <strong>@ProfileService.Current.Coins coins</strong>
+    </div>
+
     <h4>Scheme Colors (100 coins)</h4>
-    <div class="button-bar">
-        @for (var i = 0; i < 5; i++)
+    <div class="color-grid">
+        @for (var i = 0; i < _schemeSwatches.Length; i++)
         {
             var owned = ProfileService.Current.OwnedSchemes.Contains(i);
-            <button class="secondary-button" disabled="@(owned)" @onclick="() => BuyScheme(i)">Scheme @i @(owned ? "Owned" : string.Empty)</button>
+            <button class="color-chip" disabled="@(owned)" @onclick="() => BuyScheme(i)" style=$"background:@_schemeSwatches[i]">
+                Scheme @i @(owned ? "Owned" : string.Empty)
+            </button>
         }
     </div>
+
     <h4>Avatars (150 coins)</h4>
-    <div class="button-bar">
-        @for (var i = 0; i < 5; i++)
+    <div class="avatar-grid">
+        @for (var i = 0; i < AssetCatalog.AvatarOptions.Length; i++)
         {
             var owned = ProfileService.Current.OwnedAvatars.Contains(i);
-            <button class="secondary-button" disabled="@(owned)" @onclick="() => BuyAvatar(i)">Avatar @i @(owned ? "Owned" : string.Empty)</button>
+            <button class="avatar-card" disabled="@(owned)" @onclick="() => BuyAvatar(i)">
+                <img src="@AssetCatalog.GetAvatar(i)" alt=$"Avatar {i}" />
+                <span>@(owned ? "Owned" : "Buy")</span>
+            </button>
         }
     </div>
+
     <h4>Buffs</h4>
-    <div class="button-bar">
-        <button class="secondary-button" disabled="@ProfileService.Current.OwnedBuffs.Contains(1)" @onclick="() => BuyBuff(1, 300)">Coin +20%</button>
-        <button class="secondary-button" disabled="@ProfileService.Current.OwnedBuffs.Contains(2)" @onclick="() => BuyBuff(2, 350)">Correct +10%</button>
-        <button class="secondary-button" disabled="@ProfileService.Current.OwnedBuffs.Contains(3)" @onclick="() => BuyBuff(3, 250)">Skip Half Cost</button>
-        <button class="secondary-button" disabled="@ProfileService.Current.OwnedBuffs.Contains(4)" @onclick="() => BuyBuff(4, 400)">Extra Life</button>
+    <div class="buff-grid">
+        @foreach (var buff in BuffCards)
+        {
+            var owned = ProfileService.Current.OwnedBuffs.Contains(buff.Id);
+            <div class="buff-card">
+                <img src="@AssetCatalog.GetBuffIcon(buff.Id)" alt="@buff.Title" class="icon" />
+                <div>
+                    <strong>@buff.Title</strong>
+                    <p class="text-muted">@buff.Description</p>
+                </div>
+                <button class="secondary-button" disabled="@(owned)" @onclick="() => BuyBuff(buff.Id, buff.Cost)">@((owned) ? "Owned" : $"{buff.Cost} coins")</button>
+            </div>
+        }
+    </div>
+
+    <h4>Idols</h4>
+    <div class="idol-grid">
+        @foreach (var idol in IdolCards)
+        {
+            <div class="idol-card">
+                <img src="@AssetCatalog.GetIdolIcon(idol.Level)" alt="@idol.Title" class="idol-icon" />
+                <div>
+                    <strong>@idol.Title</strong>
+                    <p class="text-muted">@idol.Description</p>
+                </div>
+            </div>
+        }
     </div>
 </div>
 
 @code {
+    private record BuffCard(int Id, string Title, string Description, int Cost);
+    private record IdolCard(int Level, string Title, string Description);
+    private readonly string[] _schemeSwatches = { "#58a6ff", "#7ee787", "#f85149", "#c297ff", "#f7b84b" };
+
+    private IEnumerable<BuffCard> BuffCards => new List<BuffCard>
+    {
+        new(1, "Coin +20%", "Stack coins faster with this shiny buff.", 300),
+        new(2, "Correct +10%", "Sharpen your answers with a boosted accuracy buff.", 350),
+        new(3, "Skip Half Cost", "Use the 50:50 skip for fewer coins.", 250),
+        new(4, "Extra Life", "Gain a bonus heart for tough rounds.", 400)
+    };
+
+    private IEnumerable<IdolCard> IdolCards => new List<IdolCard>
+    {
+        new(1, "Bronze Idol", "Entry tier ornament to guide your answers."),
+        new(2, "Silver Idol", "Increased odds of revealing the right pick."),
+        new(3, "Gold Idol", "A reliable helper for clutch questions."),
+        new(4, "Platinum Idol", "High-tier idol that celebrates mastery."),
+        new(5, "Diamond Idol", "Top tier with the rarest spark."),
+    };
+
     protected override async Task OnInitializedAsync()
     {
         await ProfileService.InitializeAsync();
