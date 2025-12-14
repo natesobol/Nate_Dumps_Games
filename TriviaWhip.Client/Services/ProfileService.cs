@@ -1,3 +1,4 @@
+using System.Linq;
 using Supabase;
 using TriviaWhip.Shared.Models;
 
@@ -62,6 +63,8 @@ public class ProfileService
             return;
         }
 
+        RecalculateRatios();
+
         var settingsPayload = BuildSettingsEnvelope();
 
         var row = new TriviaProfileRow
@@ -79,19 +82,68 @@ public class ProfileService
             Lives = (short)Current.Lives,
             TotalCorrect = Current.CorrectCount,
             Level = Current.Level,
-            MilestoneProgress = Current.CorrectCount,
-            BestScore = Current.BestStreak,
+            MilestoneProgress = Current.MilestoneProgress,
+            BestScore = Current.HighestGameScore,
             DevMode = false,
             LastEmail = CurrentSettings.LastEmailAddress,
             Achievements = Current.Achievements,
-            RatioScores = new(),
+            RatioScores = Current.RatioScores,
+            SubcategoryCorrectCounts = Current.SubcategoryCorrectCounts,
+            SubcategoryWrongCounts = Current.SubcategoryWrongCounts,
+            CategoryCorrectCounts = Current.CategoryCorrectCounts,
+            CategoryWrongCounts = Current.CategoryWrongCounts,
             CategoriesSelected = settingsPayload.CategoriesSelected,
             SubCategoriesSelected = settingsPayload.SubCategoriesSelected,
-            Settings = settingsPayload
+            Settings = settingsPayload,
+            TotalQuestionsAnswered = Current.TotalQuestionsAnswered,
+            TotalSessionsPlayed = Current.TotalSessionsPlayed,
+            HighestGameScore = Current.HighestGameScore,
+            AverageGameScore = Current.AverageGameScore,
+            MaxStreak = Current.MaxStreak,
+            AverageAnswerTimeMs = Current.AverageAnswerTimeMs,
+            FastestAnswerTimeMs = Current.FastestAnswerTimeMs,
+            SlowestAnswerTimeMs = Current.SlowestAnswerTimeMs,
+            BuffUsageCounts = Current.BuffUsageCounts,
+            FirstPlayedAt = Current.FirstPlayedAt,
+            LastPlayedAt = Current.LastPlayedAt,
+            CoinsSpentGame = Current.CoinsSpentGame,
+            CoinsSpentStore = Current.CoinsSpentStore
         };
 
         await _supabase.From<TriviaProfileRow>().Upsert(row);
         Changed?.Invoke();
+    }
+
+    private void RecalculateRatios()
+    {
+        var ratios = new Dictionary<string, double>();
+
+        static void ApplyRatios(Dictionary<string, int> correct, Dictionary<string, int> wrong, Dictionary<string, double> target)
+        {
+            foreach (var kvp in correct)
+            {
+                var totalWrong = wrong.TryGetValue(kvp.Key, out var incorrect) ? incorrect : 0;
+                var total = kvp.Value + totalWrong;
+                if (total > 0)
+                {
+                    target[kvp.Key] = Math.Round((double)kvp.Value / total, 4);
+                }
+            }
+
+            foreach (var kvp in wrong.Where(pair => !correct.ContainsKey(pair.Key)))
+            {
+                var total = kvp.Value;
+                if (total > 0)
+                {
+                    target[kvp.Key] = 0;
+                }
+            }
+        }
+
+        ApplyRatios(Current.CategoryCorrectCounts, Current.CategoryWrongCounts, ratios);
+        ApplyRatios(Current.SubcategoryCorrectCounts, Current.SubcategoryWrongCounts, ratios);
+
+        Current.RatioScores = ratios;
     }
 
     private void MapFromRow(TriviaProfileRow row)
@@ -111,7 +163,26 @@ public class ProfileService
         Current.Level = row.Level;
         Current.Milestones = BuildMilestones();
         Current.Achievements = row.Achievements ?? new();
-        Current.BestStreak = row.BestScore;
+        Current.BestStreak = row.MaxStreak > 0 ? row.MaxStreak : row.BestScore;
+        Current.MaxStreak = row.MaxStreak > 0 ? row.MaxStreak : row.BestScore;
+        Current.MilestoneProgress = row.MilestoneProgress;
+        Current.TotalQuestionsAnswered = row.TotalQuestionsAnswered;
+        Current.TotalSessionsPlayed = row.TotalSessionsPlayed;
+        Current.HighestGameScore = row.HighestGameScore > 0 ? row.HighestGameScore : row.BestScore;
+        Current.AverageGameScore = row.AverageGameScore;
+        Current.AverageAnswerTimeMs = row.AverageAnswerTimeMs;
+        Current.FastestAnswerTimeMs = row.FastestAnswerTimeMs;
+        Current.SlowestAnswerTimeMs = row.SlowestAnswerTimeMs;
+        Current.FirstPlayedAt = row.FirstPlayedAt;
+        Current.LastPlayedAt = row.LastPlayedAt;
+        Current.RatioScores = row.RatioScores ?? new();
+        Current.CategoryCorrectCounts = row.CategoryCorrectCounts ?? new();
+        Current.CategoryWrongCounts = row.CategoryWrongCounts ?? new();
+        Current.SubcategoryCorrectCounts = row.SubcategoryCorrectCounts ?? new();
+        Current.SubcategoryWrongCounts = row.SubcategoryWrongCounts ?? new();
+        Current.BuffUsageCounts = row.BuffUsageCounts ?? new();
+        Current.CoinsSpentGame = row.CoinsSpentGame;
+        Current.CoinsSpentStore = row.CoinsSpentStore;
 
         var settings = row.Settings ?? BuildDefaultSettings();
         EnsureSettingsDefaults(settings);

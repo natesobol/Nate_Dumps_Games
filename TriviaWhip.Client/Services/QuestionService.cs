@@ -66,34 +66,19 @@ public class QuestionService
 
     private static bool IsCategoryAllowed(Settings settings, Question question)
     {
-        var (main, sub) = SplitCategory(question);
+        var (categorySlug, subSlug) = CategoryCatalog.NormalizeQuestionCategory(question);
         return !settings.CategoriesSelected.Any()
-               || settings.CategoriesSelected.Contains(question.Category)
-               || settings.CategoriesSelected.Contains(main)
-               || (!string.IsNullOrWhiteSpace(sub) && settings.CategoriesSelected.Contains(main + "_" + sub));
+               || settings.CategoriesSelected.Contains(categorySlug)
+               || (!string.IsNullOrWhiteSpace(subSlug) && settings.CategoriesSelected.Contains(subSlug));
     }
 
     private static bool IsSubCategoryAllowed(Settings settings, Question question)
     {
-        var (main, sub) = SplitCategory(question);
-        if (string.IsNullOrWhiteSpace(question.SubCategory) && !string.IsNullOrWhiteSpace(sub))
-        {
-            question.SubCategory = sub;
-        }
-
+        var (categorySlug, subSlug) = CategoryCatalog.NormalizeQuestionCategory(question);
         return !settings.SubCategoriesSelected.Any()
-               || settings.SubCategoriesSelected.Contains(question.SubCategory)
-               || settings.SubCategoriesSelected.Contains(question.Category)
-               || settings.SubCategoriesSelected.Contains(sub)
-               || settings.SubCategoriesSelected.Contains(main + "_" + sub);
-    }
-
-    private static (string Main, string Sub) SplitCategory(Question question)
-    {
-        var parts = question.Category.Split('_', 2, StringSplitOptions.TrimEntries);
-        var main = parts.Length > 0 ? parts[0] : question.Category;
-        var sub = parts.Length > 1 ? parts[1] : string.Empty;
-        return (main, sub);
+               || settings.SubCategoriesSelected.Contains(subSlug)
+               || settings.SubCategoriesSelected.Contains(categorySlug)
+               || settings.SubCategoriesSelected.Contains(CategoryCatalog.GetSubSlug(subSlug) ?? string.Empty);
     }
 
     public static List<Question> Shuffle(IEnumerable<Question> questions)

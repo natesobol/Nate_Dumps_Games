@@ -74,9 +74,10 @@
             <div class="tag-row">
                 @foreach (var category in SettingsService.Current.CategoriesSelected.DefaultIfEmpty("All"))
                 {
+                    var label = GetCategoryLabel(category);
                     <span class="tag-pill">
                         <img class="icon" src="@AssetCatalog.GetMainCategoryIcon(category)" alt="Category icon" />
-                        @category
+                        @label
                     </span>
                 }
             </div>
@@ -112,6 +113,18 @@ ProfileService.Current.Milestones.LastOrDefault(300));
     private IEnumerable<string> BuffIcons => ProfileService.Current.OwnedBuffs.Any()
         ? ProfileService.Current.OwnedBuffs.Select(AssetCatalog.GetBuffIcon)
         : new[] { AssetCatalog.GetAssetPath("add buff.png") };
+
+    private static string GetCategoryLabel(string slug)
+    {
+        if (string.IsNullOrWhiteSpace(slug) || slug.Equals("all", StringComparison.OrdinalIgnoreCase))
+        {
+            return "All";
+        }
+
+        return slug.Contains("__", StringComparison.Ordinal)
+            ? CategoryCatalog.GetSubcategoryDisplay(slug)
+            : CategoryCatalog.GetCategoryDisplay(slug);
+    }
 
     protected override async Task OnInitializedAsync()
     {

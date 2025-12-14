@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using Postgrest.Attributes;
 using Postgrest.Models;
 
@@ -76,6 +78,12 @@ public class TriviaProfileRow : BaseModel
     [Column("best_score")]
     public int BestScore { get; set; }
 
+    [Column("created_at")]
+    public DateTime CreatedAt { get; set; }
+
+    [Column("updated_at")]
+    public DateTime UpdatedAt { get; set; }
+
     [Column("dev_mode")]
     public bool DevMode { get; set; }
 
@@ -88,6 +96,18 @@ public class TriviaProfileRow : BaseModel
     [Column("ratio_scores")]
     public Dictionary<string, double>? RatioScores { get; set; }
 
+    [Column("subcat_correct_counts")]
+    public Dictionary<string, int>? SubcategoryCorrectCounts { get; set; }
+
+    [Column("subcat_wrong_counts")]
+    public Dictionary<string, int>? SubcategoryWrongCounts { get; set; }
+
+    [Column("category_correct_counts")]
+    public Dictionary<string, int>? CategoryCorrectCounts { get; set; }
+
+    [Column("category_wrong_counts")]
+    public Dictionary<string, int>? CategoryWrongCounts { get; set; }
+
     [Column("selected_categories")]
     public HashSet<string>? CategoriesSelected { get; set; }
 
@@ -96,4 +116,37 @@ public class TriviaProfileRow : BaseModel
 
     [Column("settings")]
     public Settings? Settings { get; set; }
+
+    [Column("total_questions_answered")]
+    public int TotalQuestionsAnswered { get; set; }
+
+    [Column("total_sessions_played")]
+    public int TotalSessionsPlayed { get; set; }
+
+    [Column("highest_game_score")]
+    public int HighestGameScore { get; set; }
+
+    [Column("average_game_score")]
+    public double AverageGameScore { get; set; }
+
+    [Column("max_streak")]
+    public int MaxStreak { get; set; }
+
+    [Column("average_answer_time_ms")]
+    public int? AverageAnswerTimeMs { get; set; }
+
+    [Column("fastest_answer_time_ms")]
+    public int? FastestAnswerTimeMs { get; set; }
+
+    [Column("slowest_answer_time_ms")]
+    public int? SlowestAnswerTimeMs { get; set; }
+
+    [Column("buff_usage_counts")]
+    public Dictionary<string, int>? BuffUsageCounts { get; set; }
+
+    [Column("first_played_at")]
+    public DateTime? FirstPlayedAt { get; set; }
+
+    [Column("last_played_at")]
+    public DateTime? LastPlayedAt { get; set; }
 }

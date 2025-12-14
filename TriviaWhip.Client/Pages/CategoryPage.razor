@@ -1,7 +1,6 @@
 @page "/categories"
 @inject SettingsService SettingsService
 @inject ProfileService ProfileService
-@inject QuestionService QuestionService
 
 <h1 class="page-title">Select Categories</h1>
 <div class="main-card">
@@ -72,52 +71,23 @@
         _initialized = true;
     }
 
-    private async Task LoadCategories()
+    private Task LoadCategories()
     {
-        _error = null;
-        try
-        {
-            var questions = await QuestionService.GetAllAsync();
-            var grouped = questions
-                .Select(q =>
-                {
-                    var parts = q.Category.Split('_', 2, StringSplitOptions.TrimEntries);
-                    var main = parts[0];
-                    var sub = parts.Length > 1 ? parts[1] : string.Empty;
-                    if (string.IsNullOrWhiteSpace(q.SubCategory) && !string.IsNullOrWhiteSpace(sub))
-                    {
-                        q.SubCategory = sub;
-                    }
+        var grouped = CategoryCatalog.Categories
+            .Select(category => new CategoryGroup(
+                category.Slug,
+                category.Name,
+                AssetCatalog.GetMainCategoryIcon(category.Slug),
+                category.Subcategories
+                    .Select(sub => new SubcategoryItem(sub.Slug, AssetCatalog.GetSubCategoryIcon(sub.Slug), sub.Name))
+                    .ToList()));
 
-                    return new
-                    {
-                        Main = main,
-                        Sub = string.IsNullOrWhiteSpace(sub) ? main : sub
-                    };
-                })
-                .GroupBy(x => x.Main)
-                .Select(g => new CategoryGroup(
-                    g.Key,
-                    AssetCatalog.ToTitle(g.Key),
-                    AssetCatalog.GetMainCategoryIcon(g.Key),
-                    g.Select(x => x.Sub)
-                        .Distinct()
-                        .OrderBy(x => x)
-                        .Select(sub => new SubcategoryItem(sub, AssetCatalog.GetSubCategoryIcon(sub), AssetCatalog.ToTitle(sub)))
-                        .ToList()));
+        _categories = SettingsService.Current.AlphabeticalCategories
+            ? grouped.OrderBy(g => g.Display).ToList()
+            : grouped.ToList();
 
-            _categories = SettingsService.Current.AlphabeticalCategories
-                ? grouped.OrderBy(g => g.Display).ToList()
-                : grouped.ToList();
-
-            NormalizeSelections();
-        }
-        catch (Exception ex)
-        {
-            _categories = new List<CategoryGroup>();
-            _error = "Unable to load categories right now.";
-            Console.Error.WriteLine($"Failed to load categories: {ex.Message}");
-        }
+        NormalizeSelections();
+        return Task.CompletedTask;
     }
 
     private void ToggleCategory(string key)
@@ -172,6 +142,16 @@
     {
         if (_categories is null) return;
 
+        SettingsService.Current.CategoriesSelected = SettingsService.Current.CategoriesSelected
+            .Select(CategoryCatalog.GetMainSlug)
+            .Where(key => !string.IsNullOrWhiteSpace(key))
+            .ToHashSet();
+
+        SettingsService.Current.SubCategoriesSelected = SettingsService.Current.SubCategoriesSelected
+            .Select(NormalizeSubSelection)
+            .Where(key => !string.IsNullOrWhiteSpace(key))
+            .ToHashSet();
+
         foreach (var category in _categories)
         {
             var allSubsSelected = category.Subcategories.All(s => SettingsService.Current.SubCategoriesSelected.Contains(s.Key));
@@ -202,6 +182,18 @@
         {
             SettingsService.Current.CategoriesSelected.Remove(categoryKey);
         }
+    }
+
+    private static string NormalizeSubSelection(string key)
+    {
+        var sub = CategoryCatalog.GetSubSlug(key);
+        var main = CategoryCatalog.GetMainSlug(key);
+        if (!string.IsNullOrWhiteSpace(sub))
+        {
+            return $"{main}__{sub}";
+        }
+
+        return string.IsNullOrWhiteSpace(main) ? string.Empty : main;
     }
 
     private string GetIconClass(string iconPath)

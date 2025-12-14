@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using TriviaWhip.Shared.Models;
 
 namespace TriviaWhip.Client.Shared;
 
@@ -134,12 +135,15 @@ public static class AssetCatalog
 
     public static string GetMainCategoryIcon(string name)
     {
-        return GetAssetPath(LookupIcon(MainCategoryIcons, name) ?? "categoryview.png");
+        var key = CategoryCatalog.GetMainSlug(name);
+        return GetAssetPath(LookupIcon(MainCategoryIcons, key) ?? "categoryview.png");
     }
 
     public static string GetSubCategoryIcon(string name)
     {
-        return GetAssetPath(LookupIcon(SubCategoryIcons, name) ?? "categoryview.png");
+        var sub = CategoryCatalog.GetSubSlug(name);
+        var lookupKey = !string.IsNullOrWhiteSpace(sub) ? sub : CategoryCatalog.GetMainSlug(name);
+        return GetAssetPath(LookupIcon(SubCategoryIcons, lookupKey ?? string.Empty) ?? "categoryview.png");
     }
 
     private static string? LookupIcon(IDictionary<string, string> map, string key)
