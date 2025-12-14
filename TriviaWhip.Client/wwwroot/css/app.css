@@ -6,6 +6,7 @@
     min-height: 100vh;
     display: grid;
     grid-template-columns: 280px 1fr;
+    column-gap: clamp(var(--spacing-lg), 3vw, 40px);
     background: radial-gradient(circle at 10% 20%, rgba(88, 166, 255, 0.06), transparent 25%),
                 radial-gradient(circle at 90% 10%, rgba(126, 231, 135, 0.05), transparent 20%),
                 var(--color-bg-primary);
@@ -14,6 +15,25 @@
 @media (max-width: 900px) {
     .page {
         grid-template-columns: 1fr;
+        column-gap: 0;
+    }
+}
+
+main {
+    padding: clamp(var(--spacing-lg), 4vw, 56px) clamp(var(--spacing-lg), 5vw, 72px) clamp(var(--spacing-xl), 4vw, 64px) clamp(var(--spacing-lg), 3vw, 48px);
+}
+
+.content {
+    padding: 0;
+}
+
+@media (max-width: 900px) {
+    main {
+        padding: var(--spacing-lg) clamp(var(--spacing-md), 4vw, var(--spacing-xl));
+    }
+
+    .content {
+        padding: 0;
     }
 }
 
