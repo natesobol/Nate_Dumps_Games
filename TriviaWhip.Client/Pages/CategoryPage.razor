@@ -3,17 +3,9 @@
 @inject ProfileService ProfileService
 @inject QuestionService QuestionService
 
-<h2>Categories</h2>
+<h1>Select Categories</h1>
 <div class="main-card">
-    <div class="category-toolbar">
-        <button class="ghost-button" @onclick="() => SettingsService.Current.AlphabeticalCategories = !SettingsService.Current.AlphabeticalCategories">
-            <img src="@AssetCatalog.GetAssetPath(SettingsService.Current.AlphabeticalCategories ? "alphaview.png" : "categoryview.png")" alt="View toggle" />
-            <span>@(SettingsService.Current.AlphabeticalCategories ? "Alphabetical View" : "Category View")</span>
-        </button>
-        <button class="ghost-button" @onclick="() => SettingsService.Current.ViewCategoriesOnStart = !SettingsService.Current.ViewCategoriesOnStart">
-            <img src="@AssetCatalog.GetAssetPath(SettingsService.Current.ViewCategoriesOnStart ? "startupon.png" : "startupoff.png")" alt="Startup toggle" />
-            <span>Show on Start</span>
-        </button>
+    <div class="category-toolbar category-toolbar--compact">
         <button class="primary-button" @onclick="Save">Save</button>
     </div>
     @if (!string.IsNullOrEmpty(_error))
