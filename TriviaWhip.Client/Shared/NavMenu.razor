@@ -1,5 +1,70 @@
+@inject AuthService AuthService
+@inject ProfileService ProfileService
+@inject NavigationManager Nav
+@using System.Linq
+@implements IDisposable
+
 <nav class="nav-menu">
     <a href="/" class="brand">Trivia Whip</a>
+
+    <div class="auth-entry">
+        @if (!AuthService.IsAuthenticated)
+        {
+            <button class="login-button" @onclick="ToggleAuthPanel">Log in</button>
+            @if (_showAuthPanel)
+            {
+                <div class="auth-card">
+                    <div class="auth-header">
+                        <span class="eyebrow">Welcome back</span>
+                        <strong>@(_isRegisterMode ? "Create an account" : "Log in")</strong>
+                    </div>
+
+                    @if (!string.IsNullOrWhiteSpace(_authMessage))
+                    {
+                        <div class="auth-message">@_authMessage</div>
+                    }
+
+                    @if (_isRegisterMode)
+                    {
+                        <label>Work Email</label>
+                        <input @bind="_registerEmail" type="email" placeholder="you@example.com" />
+                        <label>Username</label>
+                        <input @bind="_registerUsername" placeholder="Create a username" />
+                        <label>Password</label>
+                        <input @bind="_registerPassword" type="password" placeholder="•••••••" />
+
+                        <button class="cta" @onclick="RegisterAsync" disabled="@_isSubmitting">
+                            @_primaryActionLabel
+                        </button>
+                        <button class="linkish" @onclick="SwitchToLogin">I already have an account</button>
+                    }
+                    else
+                    {
+                        <label>Username</label>
+                        <input @bind="_loginIdentifier" placeholder="Username or email" />
+                        <label>Password</label>
+                        <input @bind="_loginPassword" type="password" placeholder="Your password" />
+
+                        <button class="cta" @onclick="LoginAsync" disabled="@_isSubmitting">
+                            @_primaryActionLabel
+                        </button>
+                        <button class="linkish" @onclick="SwitchToRegister">Create an account</button>
+                    }
+                </div>
+            }
+        }
+        else
+        {
+            <NavLink class="account-pill" href="/account">
+                <span class="avatar-letter">@UserInitial</span>
+                <div class="account-meta">
+                    <span class="eyebrow">Account</span>
+                    <strong>@DisplayName</strong>
+                </div>
+            </NavLink>
+        }
+    </div>
+
     <ul>
         <li><NavLink href="/" Match="NavLinkMatch.All">Title</NavLink></li>
         <li><NavLink href="/categories">Categories</NavLink></li>
@@ -9,3 +74,111 @@
         <li><NavLink href="/feedback">Feedback</NavLink></li>
     </ul>
 </nav>
+
+@code {
+    private bool _showAuthPanel;
+    private bool _isRegisterMode;
+    private bool _isSubmitting;
+    private string _loginIdentifier = string.Empty;
+    private string _loginPassword = string.Empty;
+    private string _registerEmail = string.Empty;
+    private string _registerUsername = string.Empty;
+    private string _registerPassword = string.Empty;
+    private string _authMessage = string.Empty;
+
+    private string DisplayName => AuthService.Profile?.Name ?? AuthService.CurrentEmail ?? "Player";
+    private string UserInitial
+    {
+        get
+        {
+            var first = DisplayName.FirstOrDefault();
+            return (first == default ? 'U' : char.ToUpperInvariant(first)).ToString();
+        }
+    }
+    private string _primaryActionLabel => _isSubmitting ? "Working..." : _isRegisterMode ? "Create Account" : "Log in";
+
+    protected override async Task OnInitializedAsync()
+    {
+        AuthService.AuthStateChanged += OnAuthChanged;
+        await AuthService.InitializeAsync();
+        if (AuthService.IsAuthenticated)
+        {
+            await ProfileService.InitializeAsync();
+        }
+    }
+
+    private async Task LoginAsync()
+    {
+        _isSubmitting = true;
+        _authMessage = string.Empty;
+
+        var result = await AuthService.SignInAsync(_loginIdentifier, _loginPassword);
+        _authMessage = result.Error ?? string.Empty;
+
+        if (result.Succeeded)
+        {
+            await ProfileService.InitializeAsync();
+            ResetForms();
+            _showAuthPanel = false;
+        }
+
+        _isSubmitting = false;
+    }
+
+    private async Task RegisterAsync()
+    {
+        _isSubmitting = true;
+        _authMessage = string.Empty;
+
+        var result = await AuthService.SignUpAsync(_registerEmail, _registerUsername, _registerPassword);
+        _authMessage = result.Error ?? string.Empty;
+
+        if (result.Succeeded)
+        {
+            await ProfileService.InitializeAsync();
+            ResetForms();
+            _showAuthPanel = false;
+        }
+
+        _isSubmitting = false;
+    }
+
+    private void SwitchToRegister()
+    {
+        _authMessage = string.Empty;
+        _isRegisterMode = true;
+        _showAuthPanel = true;
+    }
+
+    private void SwitchToLogin()
+    {
+        _authMessage = string.Empty;
+        _isRegisterMode = false;
+    }
+
+    private void ToggleAuthPanel()
+    {
+        _showAuthPanel = !_showAuthPanel;
+        _authMessage = string.Empty;
+    }
+
+    private void ResetForms()
+    {
+        _loginIdentifier = string.Empty;
+        _loginPassword = string.Empty;
+        _registerEmail = string.Empty;
+        _registerUsername = string.Empty;
+        _registerPassword = string.Empty;
+        _isRegisterMode = false;
+    }
+
+    private void OnAuthChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        AuthService.AuthStateChanged -= OnAuthChanged;
+    }
+}

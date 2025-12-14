@@ -1,0 +1,93 @@
+@page "/account"
+@inject AuthService AuthService
+@inject NavigationManager Nav
+@implements IDisposable
+
+<div class="container">
+    <div class="main-card account-card">
+        <div class="card-header">
+            <div>
+                <p class="eyebrow">Profile</p>
+                <h2>Your account</h2>
+                <p class="text-muted">Manage your Trivia Whip login and update your password.</p>
+            </div>
+            <div class="account-pill large-pill">
+                <span class="avatar-letter">@UserInitial</span>
+                <div class="account-meta">
+                    <span class="eyebrow">Signed in as</span>
+                    <strong>@DisplayName</strong>
+                </div>
+            </div>
+        </div>
+
+        @if (!AuthService.IsAuthenticated)
+        {
+            <div class="empty-state">
+                <p>You need to sign in to view account settings.</p>
+                <button class="cta" @onclick="GoHome">Return to start</button>
+            </div>
+        }
+        else
+        {
+            <div class="info-grid">
+                <div class="info-tile">
+                    <p class="eyebrow">Account Email</p>
+                    <h4>@AuthService.CurrentEmail</h4>
+                </div>
+                <div class="info-tile">
+                    <p class="eyebrow">Username</p>
+                    <h4>@DisplayName</h4>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Change password</label>
+                <input @bind="_newPassword" type="password" placeholder="Enter a new password" />
+                @if (!string.IsNullOrWhiteSpace(_statusMessage))
+                {
+                    <div class="auth-message">@_statusMessage</div>
+                }
+                <button class="cta" @onclick="UpdatePasswordAsync">Save password</button>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private string DisplayName => AuthService.Profile?.Name ?? AuthService.CurrentEmail ?? "Player";
+    private string UserInitial => (string.IsNullOrWhiteSpace(DisplayName) ? "U" : char.ToUpperInvariant(DisplayName[0]).ToString());
+    private string _newPassword = string.Empty;
+    private string _statusMessage = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        AuthService.AuthStateChanged += OnAuthChanged;
+        await AuthService.InitializeAsync();
+    }
+
+    private async Task UpdatePasswordAsync()
+    {
+        var result = await AuthService.UpdatePasswordAsync(_newPassword);
+        _statusMessage = result.Error ?? "Password updated successfully.";
+
+        if (result.Succeeded)
+        {
+            _newPassword = string.Empty;
+        }
+    }
+
+    private void GoHome()
+    {
+        Nav.NavigateTo("/");
+    }
+
+    private void OnAuthChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        AuthService.AuthStateChanged -= OnAuthChanged;
+    }
+}

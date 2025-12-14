@@ -19,6 +19,7 @@ builder.Services.AddSingleton(provider =>
 builder.Services.AddScoped<QuestionService>();
 builder.Services.AddScoped<SettingsService>();
 builder.Services.AddScoped<ProfileService>();
+builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<GameEngine>();
 builder.Services.AddScoped<AchievementService>();
 builder.Services.AddScoped<PurchaseService>();
