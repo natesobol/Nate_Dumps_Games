@@ -68,3 +68,7 @@ Remove or replace iOS-only integrations such as AppTrackingTransparency, Game Ce
    dotnet run --project TriviaWhip.Server/TriviaWhip.Server.csproj
    ```
 4. Navigate to the served URL (default `https://localhost:5001`) to play Trivia Whip in the browser.
+
+## GitHub Pages deployment (no binary files committed)
+- Build artifacts such as the Blazor `_framework` output and the published `wwwroot` directory should **not** be committed to the repository. They are now ignored via `.gitignore`.
+- The `.github/workflows/deploy-gh-pages.yml` workflow restores and publishes the client on pushes to the `work` branch, then uploads only the generated `wwwroot` files as a GitHub Pages artifact. This keeps the repository free of binary payloads while still updating the site.
