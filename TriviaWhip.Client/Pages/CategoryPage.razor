@@ -3,17 +3,9 @@
 @inject ProfileService ProfileService
 @inject QuestionService QuestionService
 
-<h2>Categories</h2>
+<h1>Select Categories</h1>
 <div class="main-card">
-    <div class="category-toolbar">
-        <button class="ghost-button" @onclick="() => SettingsService.Current.AlphabeticalCategories = !SettingsService.Current.AlphabeticalCategories">
-            <img src="@AssetCatalog.GetAssetPath(SettingsService.Current.AlphabeticalCategories ? "alphaview.png" : "categoryview.png")" alt="View toggle" />
-            <span>@(SettingsService.Current.AlphabeticalCategories ? "Alphabetical View" : "Category View")</span>
-        </button>
-        <button class="ghost-button" @onclick="() => SettingsService.Current.ViewCategoriesOnStart = !SettingsService.Current.ViewCategoriesOnStart">
-            <img src="@AssetCatalog.GetAssetPath(SettingsService.Current.ViewCategoriesOnStart ? "startupon.png" : "startupoff.png")" alt="Startup toggle" />
-            <span>Show on Start</span>
-        </button>
+    <div class="category-toolbar category-toolbar--compact">
         <button class="primary-button" @onclick="Save">Save</button>
     </div>
     @if (!string.IsNullOrEmpty(_error))
@@ -29,24 +21,26 @@
         {
             foreach (var category in _categories)
             {
-                <div class="category-card">
+                var categorySelected = SettingsService.Current.CategoriesSelected.Contains(category.Key);
+                <div class="category-card category-panel @(categorySelected ? "is-selected" : string.Empty)">
                     <div class="category-header">
-                        <img class="icon" src="@category.Icon" alt="@category.Display icon" />
-                        <div>
-                            <div class="category-title">@category.Display</div>
-                            <button type="button" class="checkbox-button" @onclick="() => ToggleCategory(category.Key)">
-                                <img class="checkbox-icon" src="@GetCheckboxImage(SettingsService.Current.CategoriesSelected.Contains(category.Key))" alt="Category toggle" />
-                                <span>@(SettingsService.Current.CategoriesSelected.Contains(category.Key) ? "Selected" : "Tap to select")</span>
-                            </button>
-                        </div>
+                        <img class="category-icon @GetIconClass(category.Icon)" src="@category.Icon" alt="@category.Display icon" />
+                        <div class="category-title">@category.Display</div>
+                        <button type="button" class="checkbox-button category-toggle" @onclick="() => ToggleCategory(category.Key)">
+                            <img class="checkbox-icon" src="@GetCheckboxImage(categorySelected)" alt="Category toggle" />
+                            <span>@(categorySelected ? "Selected" : "Tap to select")</span>
+                        </button>
                     </div>
                     <div class="subcategory-list">
                         @foreach (var sub in category.Subcategories)
                         {
-                            <label class="subcategory-row">
-                                <img class="icon" src="@sub.Icon" alt="@sub.Display icon" />
-                                <input type="checkbox" checked="@SettingsService.Current.SubCategoriesSelected.Contains(sub.Key)" @onchange="_ => ToggleSubcategory(category.Key, sub.Key)" />
-                                <span>@sub.Display</span>
+                            var isSubSelected = SettingsService.Current.SubCategoriesSelected.Contains(sub.Key);
+                            <label class="subcategory-row @(isSubSelected ? "is-selected" : string.Empty)">
+                                <img class="subcategory-icon" src="@sub.Icon" alt="@sub.Display icon" />
+                                <span class="subcategory-name">@sub.Display</span>
+                                <button type="button" class="checkbox-button subcategory-toggle" @onclick="() => ToggleSubcategory(category.Key, sub.Key)">
+                                    <img class="checkbox-icon" src="@GetCheckboxImage(isSubSelected)" alt="@sub.Display toggle" />
+                                </button>
                             </label>
                         }
                     </div>
@@ -115,6 +109,8 @@
             _categories = SettingsService.Current.AlphabeticalCategories
                 ? grouped.OrderBy(g => g.Display).ToList()
                 : grouped.ToList();
+
+            NormalizeSelections();
         }
         catch (Exception ex)
         {
@@ -132,12 +128,22 @@
             SettingsService.Current.CategoriesSelected.Remove(key);
             if (group is not null)
             {
-                SettingsService.Current.SubCategoriesSelected.RemoveWhere(sub => group.Subcategories.Any(s => s.Key == sub));
+                foreach (var sub in group.Subcategories)
+                {
+                    SettingsService.Current.SubCategoriesSelected.Remove(sub.Key);
+                }
             }
         }
         else
         {
             SettingsService.Current.CategoriesSelected.Add(key);
+            if (group is not null)
+            {
+                foreach (var sub in group.Subcategories)
+                {
+                    SettingsService.Current.SubCategoriesSelected.Add(sub.Key);
+                }
+            }
         }
     }
 
@@ -150,8 +156,9 @@
         else
         {
             SettingsService.Current.SubCategoriesSelected.Add(sub);
-            SettingsService.Current.CategoriesSelected.Add(categoryKey);
         }
+
+        SyncCategorySelection(categoryKey);
     }
 
     private string GetCheckboxImage(bool selected)
@@ -159,6 +166,49 @@
         return selected
             ? AssetCatalog.GetAssetPath("checked-white.png")
             : AssetCatalog.GetAssetPath("unchecked-white.png");
+    }
+
+    private void NormalizeSelections()
+    {
+        if (_categories is null) return;
+
+        foreach (var category in _categories)
+        {
+            var allSubsSelected = category.Subcategories.All(s => SettingsService.Current.SubCategoriesSelected.Contains(s.Key));
+
+            if (SettingsService.Current.CategoriesSelected.Contains(category.Key) || allSubsSelected)
+            {
+                SettingsService.Current.CategoriesSelected.Add(category.Key);
+                foreach (var sub in category.Subcategories)
+                {
+                    SettingsService.Current.SubCategoriesSelected.Add(sub.Key);
+                }
+            }
+        }
+    }
+
+    private void SyncCategorySelection(string categoryKey)
+    {
+        var group = _categories?.FirstOrDefault(c => c.Key == categoryKey);
+        if (group is null) return;
+
+        var allSelected = group.Subcategories.All(s => SettingsService.Current.SubCategoriesSelected.Contains(s.Key));
+
+        if (allSelected)
+        {
+            SettingsService.Current.CategoriesSelected.Add(categoryKey);
+        }
+        else
+        {
+            SettingsService.Current.CategoriesSelected.Remove(categoryKey);
+        }
+    }
+
+    private string GetIconClass(string iconPath)
+    {
+        return iconPath.Contains("email.png", StringComparison.OrdinalIgnoreCase)
+            ? "mail-icon"
+            : string.Empty;
     }
 
     private async Task Save()
