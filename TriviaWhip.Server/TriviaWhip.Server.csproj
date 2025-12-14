@@ -8,6 +8,7 @@
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.4" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\\TriviaWhip.Client\\TriviaWhip.Client.csproj" />
     <ProjectReference Include="..\\TriviaWhip.Shared\\TriviaWhip.Shared.csproj" />
   </ItemGroup>
 </Project>
