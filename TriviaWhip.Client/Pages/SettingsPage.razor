@@ -19,7 +19,7 @@
         <div class="stat-card">
             <label>Scheme Color</label>
             <select @bind="SettingsService.Current.SchemeColor">
-                @for (var i = 0; i < 9; i++)
+                @for (var i = 0; i < 10; i++)
                 {
                     <option value="@i">Scheme @i</option>
                 }
@@ -28,7 +28,7 @@
         <div class="stat-card">
             <label>Avatar</label>
             <select @bind="SettingsService.Current.Avatar">
-                @for (var i = 0; i < 9; i++)
+                @for (var i = 0; i < AssetCatalog.AvatarOptions.Length; i++)
                 {
                     <option value="@i">Avatar @i</option>
                 }

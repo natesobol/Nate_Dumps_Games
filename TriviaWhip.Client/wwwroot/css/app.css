@@ -704,15 +704,9 @@
 
 .avatar-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
     gap: var(--spacing-sm);
     margin-bottom: var(--spacing-lg);
-}
-
-@media (min-width: 640px) {
-    .avatar-grid {
-        grid-template-columns: repeat(5, 1fr);
-    }
 }
 
 .avatar-card {
@@ -724,19 +718,22 @@
     flex-direction: column;
     gap: var(--spacing-xs);
     align-items: center;
+    position: relative;
 }
 
 .avatar-card img {
-    width: 60px;
-    height: 60px;
+    width: 64px;
+    height: 64px;
     object-fit: contain;
 }
 
-@media (min-width: 640px) {
-    .avatar-card img {
-        width: 72px;
-        height: 72px;
-    }
+.avatar-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: var(--spacing-xs);
+    font-size: 0.9rem;
 }
 
 .buff-grid, .idol-grid {
@@ -745,7 +742,7 @@
     gap: var(--spacing-sm);
 }
 
-@media (min-width: 640px) {
+@media (min-width: 768px) {
     .buff-grid, .idol-grid {
         grid-template-columns: repeat(2, 1fr);
     }
@@ -753,7 +750,7 @@
 
 .buff-card, .idol-card {
     display: grid;
-    grid-template-columns: 40px 1fr auto;
+    grid-template-columns: 48px 1fr auto;
     gap: var(--spacing-sm);
     align-items: center;
     padding: var(--spacing-sm);
@@ -763,22 +760,156 @@
 }
 
 .idol-card {
-    grid-template-columns: 48px 1fr;
+    grid-template-columns: 56px 1fr;
 }
 
-.color-grid {
-    display: flex;
+.swatch-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
     gap: var(--spacing-sm);
-    flex-wrap: wrap;
-    margin-bottom: var(--spacing-lg);
 }
 
 .color-chip {
-    width: 80px;
-    height: 44px;
     border-radius: var(--border-radius-lg);
     border: 1px solid var(--color-border);
     color: var(--color-bg-primary);
     font-weight: 700;
     cursor: pointer;
+    padding: var(--spacing-sm);
+    text-align: left;
+    min-height: 90px;
+    position: relative;
+}
+
+.store-page .page-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+    flex-wrap: wrap;
+}
+
+.heading-left {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+.store-title-icon {
+    width: 72px;
+    height: auto;
+}
+
+.eyebrow {
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    margin: 0;
+}
+
+.compact-title {
+    margin: 0;
+}
+
+.subtle-chip {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    padding: var(--spacing-xs) var(--spacing-sm);
+}
+
+.balance-card {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-md);
+    min-width: 240px;
+}
+
+.balance-amount {
+    font-size: 1.6rem;
+    font-weight: 700;
+}
+
+.store-panel {
+    padding: var(--spacing-lg);
+}
+
+.store-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--spacing-md);
+}
+
+@media (min-width: 1024px) {
+    .store-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+.store-section {
+    background: var(--color-bg-tertiary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.section-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-sm);
+}
+
+.section-title {
+    font-weight: 700;
+}
+
+.hint-icon {
+    width: 22px;
+    height: 22px;
+    opacity: 0.6;
+}
+
+.chip-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-xs);
+}
+
+.price-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-round);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: 0.85rem;
+}
+
+.owned-badge {
+    position: absolute;
+    right: var(--spacing-sm);
+    bottom: var(--spacing-sm);
+    background: var(--color-accent-green);
+    color: var(--color-bg-primary);
+    border-radius: var(--border-radius-round);
+    padding: 0 var(--spacing-sm);
+    font-weight: 700;
+    font-size: 0.8rem;
+}
+
+.color-chip:disabled,
+.avatar-card:disabled {
+    opacity: 0.85;
+}
+
+.buff-card .secondary-button {
+    white-space: nowrap;
 }

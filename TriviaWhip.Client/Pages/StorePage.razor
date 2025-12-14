@@ -3,71 +3,172 @@
 @inject ProfileService ProfileService
 @inject SettingsService SettingsService
 
-<h2>Store</h2>
-<div class="main-card">
-    <div class="stat-row" style="margin-bottom:1rem;">
-        <img class="icon" src="@AssetCatalog.GetAssetPath("coinico.png")" alt="Coins" />
-        <strong>@ProfileService.Current.Coins coins</strong>
-    </div>
-
-    <h4>Scheme Colors (100 coins)</h4>
-    <div class="color-grid">
-        @for (var i = 0; i < _schemeSwatches.Length; i++)
-        {
-            var owned = ProfileService.Current.OwnedSchemes.Contains(i);
-            <button class="color-chip" disabled="@(owned)" @onclick="() => BuyScheme(i)" style=$"background:@_schemeSwatches[i]">
-                Scheme @i @(owned ? "Owned" : string.Empty)
-            </button>
-        }
-    </div>
-
-    <h4>Avatars (150 coins)</h4>
-    <div class="avatar-grid">
-        @for (var i = 0; i < AssetCatalog.AvatarOptions.Length; i++)
-        {
-            var owned = ProfileService.Current.OwnedAvatars.Contains(i);
-            <button class="avatar-card" disabled="@(owned)" @onclick="() => BuyAvatar(i)">
-                <img src="@AssetCatalog.GetAvatar(i)" alt=$"Avatar {i}" />
-                <span>@(owned ? "Owned" : "Buy")</span>
-            </button>
-        }
-    </div>
-
-    <h4>Buffs</h4>
-    <div class="buff-grid">
-        @foreach (var buff in BuffCards)
-        {
-            var owned = ProfileService.Current.OwnedBuffs.Contains(buff.Id);
-            <div class="buff-card">
-                <img src="@AssetCatalog.GetBuffIcon(buff.Id)" alt="@buff.Title" class="icon" />
-                <div>
-                    <strong>@buff.Title</strong>
-                    <p class="text-muted">@buff.Description</p>
-                </div>
-                <button class="secondary-button" disabled="@(owned)" @onclick="() => BuyBuff(buff.Id, buff.Cost)">@((owned) ? "Owned" : $"{buff.Cost} coins")</button>
-            </div>
-        }
-    </div>
-
-    <h4>Idols</h4>
-    <div class="idol-grid">
-        @foreach (var idol in IdolCards)
-        {
-            <div class="idol-card">
-                <img src="@AssetCatalog.GetIdolIcon(idol.Level)" alt="@idol.Title" class="idol-icon" />
-                <div>
-                    <strong>@idol.Title</strong>
-                    <p class="text-muted">@idol.Description</p>
+<div class="container store-page">
+    <div class="page-heading">
+        <div class="heading-left">
+            <img class="store-title-icon" src="@AssetCatalog.GetAssetPath("storetital.png")" alt="Store" />
+            <div>
+                <p class="eyebrow">Shop</p>
+                <h2 class="compact-title">Store</h2>
+                <div class="chip subtle-chip">
+                    <img class="icon" src="@AssetCatalog.GetAssetPath("store.png")" alt="Store icon" />
+                    Fresh looks, avatars, and boosts.
                 </div>
             </div>
-        }
+        </div>
+        <div class="balance-card">
+            <div class="stat-row">
+                <img class="icon" src="@AssetCatalog.GetAssetPath("totalcoins.png")" alt="Coins" />
+                <div>
+                    <div class="eyebrow">Coins</div>
+                    <div class="balance-amount">@ProfileService.Current.Coins</div>
+                </div>
+            </div>
+            <p class="text-muted">Tap an item to redeem coins.</p>
+        </div>
+    </div>
+
+    <div class="main-card store-panel">
+        <div class="store-grid">
+            <section class="store-section">
+                <div class="section-heading">
+                    <div class="stat-row">
+                        <img class="icon" src="@AssetCatalog.GetAssetPath("options.png")" alt="Scheme colors" />
+                        <div>
+                            <div class="section-title">Change Scheme</div>
+                            <p class="text-muted">100 coins • Pick a new color set</p>
+                        </div>
+                    </div>
+                    <img class="hint-icon" src="@AssetCatalog.GetAssetPath("question-mark.png")" alt="Help" />
+                </div>
+                <div class="swatch-grid">
+                    @for (var i = 0; i < _schemeSwatches.Length; i++)
+                    {
+                        var option = _schemeSwatches[i];
+                        var owned = ProfileService.Current.OwnedSchemes.Contains(i);
+                        <button class="color-chip" disabled="@(owned)" @onclick="() => BuyScheme(i)" style=$"background:linear-gradient(135deg,{option.Primary},{option.Secondary});">
+                            <div class="chip-label">
+                                <span>@option.Name</span>
+                                <span class="price-chip">
+                                    <img class="icon" src="@AssetCatalog.GetAssetPath("coinico.png")" alt="Coins" />
+                                    100
+                                </span>
+                            </div>
+                            <span class="owned-badge" hidden="@(!owned)">Owned</span>
+                        </button>
+                    }
+                </div>
+            </section>
+
+            <section class="store-section">
+                <div class="section-heading">
+                    <div class="stat-row">
+                        <img class="icon" src="@AssetCatalog.GetAssetPath("add-user.png")" alt="Avatars" />
+                        <div>
+                            <div class="section-title">Change Avatar</div>
+                            <p class="text-muted">100 coins • Swap your profile icon</p>
+                        </div>
+                    </div>
+                    <img class="hint-icon" src="@AssetCatalog.GetAssetPath("question-mark.png")" alt="Help" />
+                </div>
+                <div class="avatar-grid">
+                    @for (var i = 0; i < AssetCatalog.AvatarOptions.Length; i++)
+                    {
+                        var owned = ProfileService.Current.OwnedAvatars.Contains(i);
+                        <button class="avatar-card" disabled="@(owned)" @onclick="() => BuyAvatar(i)">
+                            <img src="@AssetCatalog.GetAvatar(i)" alt=$"Avatar {i}" />
+                            <div class="avatar-meta">
+                                <span>Avatar @i</span>
+                                <span class="price-chip">
+                                    <img class="icon" src="@AssetCatalog.GetAssetPath("coinico.png")" alt="Coins" />
+                                    100
+                                </span>
+                            </div>
+                            <span class="owned-badge" hidden="@(!owned)">Owned</span>
+                        </button>
+                    }
+                </div>
+            </section>
+
+            <section class="store-section">
+                <div class="section-heading">
+                    <div class="stat-row">
+                        <img class="icon" src="@AssetCatalog.GetAssetPath("achievementbutton.png")" alt="Perks" />
+                        <div>
+                            <div class="section-title">Buy Perk</div>
+                            <p class="text-muted">Boost coins, accuracy, or survivability</p>
+                        </div>
+                    </div>
+                    <img class="hint-icon" src="@AssetCatalog.GetAssetPath("question-mark.png")" alt="Help" />
+                </div>
+                <div class="buff-grid">
+                    @foreach (var buff in BuffCards)
+                    {
+                        var owned = ProfileService.Current.OwnedBuffs.Contains(buff.Id);
+                        <div class="buff-card">
+                            <img src="@AssetCatalog.GetBuffIcon(buff.Id)" alt="@buff.Title" class="icon" />
+                            <div>
+                                <div class="section-title">@buff.Title</div>
+                                <p class="text-muted">@buff.Description</p>
+                            </div>
+                            <button class="secondary-button" disabled="@(owned)" @onclick="() => BuyBuff(buff.Id, buff.Cost)">
+                                @(owned ? "Owned" : $"{buff.Cost} coins")
+                            </button>
+                        </div>
+                    }
+                </div>
+            </section>
+
+            <section class="store-section">
+                <div class="section-heading">
+                    <div class="stat-row">
+                        <img class="icon" src="@AssetCatalog.GetAssetPath("idol.png")" alt="Sigils" />
+                        <div>
+                            <div class="section-title">Buy Sigil</div>
+                            <p class="text-muted">Collect idols for prestige</p>
+                        </div>
+                    </div>
+                    <img class="hint-icon" src="@AssetCatalog.GetAssetPath("question-mark.png")" alt="Help" />
+                </div>
+                <div class="idol-grid">
+                    @foreach (var idol in IdolCards)
+                    {
+                        <div class="idol-card">
+                            <img src="@AssetCatalog.GetIdolIcon(idol.Level)" alt="@idol.Title" class="idol-icon" />
+                            <div>
+                                <div class="section-title">@idol.Title</div>
+                                <p class="text-muted">@idol.Description</p>
+                                <span class="price-chip">
+                                    <img class="icon" src="@AssetCatalog.GetAssetPath("coinico.png")" alt="Coins" />
+                                    @idol.Cost
+                                </span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </section>
+        </div>
     </div>
 </div>
 
 @code {
     private record BuffCard(int Id, string Title, string Description, int Cost);
-    private record IdolCard(int Level, string Title, string Description);
-    private readonly string[] _schemeSwatches = { "#58a6ff", "#7ee787", "#f85149", "#c297ff", "#f7b84b" };
+    private record IdolCard(int Level, string Title, string Description, int Cost);
+    private record SchemeOption(string Name, string Primary, string Secondary);
+
+    private readonly SchemeOption[] _schemeSwatches =
+    {
+        new("Cloud", "#e0ffff", "#87cefa"),
+        new("Sunset", "#f9bc60", "#fa4525"),
+        new("Meadow", "#90fa25", "#55c21f"),
+        new("Lilac", "#dda0dd", "#da70d6"),
+        new("Amber", "#f7a840", "#bf67ff"),
+        new("Blush", "#f5dadf", "#ffb6c1"),
+        new("Neon", "#deff08", "#a6bf06"),
+        new("Stone", "#a5a6a2", "#6f706d"),
+        new("Frost", "#ffffff", "#d3d3d3"),
+        new("Midnight", "#58a6ff", "#161b22")
+    };
 
     private IEnumerable<BuffCard> BuffCards => new List<BuffCard>
     {
@@ -79,11 +180,11 @@
 
     private IEnumerable<IdolCard> IdolCards => new List<IdolCard>
     {
-        new(1, "Bronze Idol", "Entry tier ornament to guide your answers."),
-        new(2, "Silver Idol", "Increased odds of revealing the right pick."),
-        new(3, "Gold Idol", "A reliable helper for clutch questions."),
-        new(4, "Platinum Idol", "High-tier idol that celebrates mastery."),
-        new(5, "Diamond Idol", "Top tier with the rarest spark."),
+        new(1, "Bronze Idol", "Entry tier ornament to guide your answers.", 200),
+        new(2, "Silver Idol", "Increased odds of revealing the right pick.", 400),
+        new(3, "Gold Idol", "A reliable helper for clutch questions.", 600),
+        new(4, "Platinum Idol", "High-tier idol that celebrates mastery.", 800),
+        new(5, "Diamond Idol", "Top tier with the rarest spark.", 1000),
     };
 
     protected override async Task OnInitializedAsync()
@@ -103,7 +204,7 @@
 
     private async Task BuyAvatar(int id)
     {
-        if (PurchaseService.TryPurchaseAvatar(id, 150))
+        if (PurchaseService.TryPurchaseAvatar(id, 100))
         {
             SettingsService.Current.Avatar = id;
             await Task.WhenAll(ProfileService.SaveAsync(), SettingsService.SaveAsync());
