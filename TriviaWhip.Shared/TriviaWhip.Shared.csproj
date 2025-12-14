@@ -7,5 +7,6 @@
   <ItemGroup>
     <PackageReference Include="Supabase" Version="1.1.1" />
     <PackageReference Include="PostgrestNet" Version="0.7.1" />
+    <PackageReference Include="Postgrest" Version="7.1.0" />
   </ItemGroup>
 </Project>
