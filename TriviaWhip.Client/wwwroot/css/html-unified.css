@@ -4,7 +4,9 @@ html, body {
     margin: 0;
     padding: 0;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: var(--color-bg-primary);
+    background: radial-gradient(circle at 30% 20%, rgba(126, 231, 135, 0.06), transparent 25%),
+                radial-gradient(circle at 80% 0%, rgba(88, 166, 255, 0.05), transparent 20%),
+                var(--color-bg-primary);
     color: var(--color-text-primary);
     min-height: 100%;
 }
@@ -18,63 +20,69 @@ body {
     display: flex;
     flex: 1;
     min-height: 100vh;
-    background: radial-gradient(circle at 20% 20%, rgba(88, 166, 255, 0.06), transparent 25%),
-                radial-gradient(circle at 80% 0%, rgba(126, 231, 135, 0.05), transparent 20%),
-                var(--color-bg-primary);
 }
 
 .sidebar {
-    width: 240px;
-    background: var(--color-bg-secondary);
+    width: 260px;
+    background: linear-gradient(160deg, rgba(16, 22, 31, 0.95), rgba(11, 16, 23, 0.9));
     border-right: 1px solid var(--color-border);
-    padding: var(--spacing-lg) var(--spacing-md);
+    padding: calc(var(--spacing-xl) + 4px) var(--spacing-lg) var(--spacing-xl);
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-md);
+    gap: var(--spacing-lg);
     position: sticky;
     top: 0;
     height: 100vh;
+    box-shadow: 12px 0 45px rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(6px);
 }
 
 .sidebar h1 {
     margin: 0;
-    font-size: 1.1rem;
+    font-size: 1.15rem;
     color: #c9d1d9;
-    letter-spacing: 0.02em;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
 }
 
 .sidebar small {
     color: var(--color-text-muted);
+    display: block;
+    margin-top: var(--spacing-xs);
 }
 
 .sidebar-nav {
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-xs);
+    gap: var(--spacing-sm);
 }
 
 .sidebar-nav a {
     color: var(--color-text-primary);
     text-decoration: none;
     padding: var(--spacing-sm) var(--spacing-md);
-    border-radius: var(--border-radius-md);
+    border-radius: var(--border-radius-lg);
     display: flex;
     align-items: center;
     gap: var(--spacing-sm);
-    transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease;
+    transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+    border: 1px solid transparent;
+    background: rgba(255, 255, 255, 0.02);
 }
 
 .sidebar-nav a:hover,
 .sidebar-nav a:focus {
-    background: var(--color-bg-tertiary);
+    background: rgba(255, 255, 255, 0.04);
     color: var(--color-accent-blue);
-    transform: translateX(2px);
+    transform: translateX(3px);
+    box-shadow: inset 0 0 0 1px rgba(88, 166, 255, 0.25);
 }
 
 .sidebar-nav a.primary {
-    background: rgba(88, 166, 255, 0.12);
+    background: linear-gradient(120deg, rgba(88, 166, 255, 0.2), rgba(126, 231, 135, 0.15));
     color: var(--color-accent-blue);
-    border: 1px solid rgba(88, 166, 255, 0.3);
+    border: 1px solid rgba(88, 166, 255, 0.4);
+    box-shadow: 0 12px 30px rgba(88, 166, 255, 0.12);
 }
 
 .main-content {
@@ -82,17 +90,18 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: clamp(var(--spacing-lg), 4vw, 80px);
+    padding: clamp(var(--spacing-lg), 5vw, 96px);
 }
 
 .status-card {
-    background: var(--color-bg-secondary);
+    background: rgba(22, 27, 34, 0.92);
     border: 1px solid var(--color-border);
     border-radius: var(--border-radius-xl);
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
-    padding: clamp(var(--spacing-lg), 4vw, 36px);
-    max-width: 740px;
+    box-shadow: 0 22px 55px rgba(0, 0, 0, 0.4);
+    padding: clamp(var(--spacing-lg), 4vw, 40px);
+    max-width: 760px;
     width: 100%;
+    backdrop-filter: blur(4px);
 }
 
 .status-card h1 {
@@ -146,19 +155,49 @@ body {
         height: auto;
         width: 100%;
         flex-direction: row;
-        align-items: center;
+        align-items: flex-start;
         justify-content: space-between;
         border-right: none;
         border-bottom: 1px solid var(--color-border);
         z-index: 10;
+        gap: var(--spacing-md);
+        padding: var(--spacing-md) clamp(var(--spacing-md), 4vw, var(--spacing-xl));
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
     }
 
     .sidebar-nav {
         flex-direction: row;
         flex-wrap: wrap;
+        gap: var(--spacing-xs);
+        overflow-x: auto;
+        padding-bottom: var(--spacing-xs);
     }
 
     .main-content {
-        padding-top: 120px;
+        padding-top: 140px;
+    }
+
+    .sidebar h1 {
+        font-size: 1rem;
+    }
+
+    .sidebar-nav a {
+        padding: var(--spacing-xs) var(--spacing-sm);
+        font-size: 0.95rem;
+    }
+}
+
+@media (max-width: 520px) {
+    .sidebar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .sidebar-nav {
+        width: 100%;
+    }
+
+    .status-actions {
+        flex-direction: column;
     }
 }
