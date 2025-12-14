@@ -1,3 +1,4 @@
+using System;
 using TriviaWhip.Shared.Models;
 
 namespace TriviaWhip.Client.Services;
@@ -33,11 +34,13 @@ public class GameEngine
         var shuffled = QuestionService.Shuffle(filtered).Take(Math.Max(1, settings.QuestionCount)).ToList();
         if (!shuffled.Any())
         {
+            Console.Error.WriteLine("No questions available after applying filters.");
             CurrentSession = new Session { Questions = new List<Question>(), IsComplete = true };
             StateChanged?.Invoke();
             return;
         }
 
+        Console.WriteLine($"Starting new session with {shuffled.Count} questions. Timer mode: {settings.TimerMode}");
         CurrentSession = new Session
         {
             Questions = shuffled,

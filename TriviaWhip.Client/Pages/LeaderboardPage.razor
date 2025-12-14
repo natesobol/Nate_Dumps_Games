@@ -5,9 +5,13 @@
 <h2>Leaderboard</h2>
 <div class="main-card">
     <p>Submit your latest score to the community board.</p>
+    @if (!string.IsNullOrEmpty(_error))
+    {
+        <p class="text-danger">@_error</p>
+    }
     <div class="button-bar">
-        <button class="primary-button" @onclick="Submit">Submit Score</button>
-        <button class="secondary-button" @onclick="Load">Refresh</button>
+        <button class="primary-button" @onclick="Submit" disabled="@_isLoading">Submit Score</button>
+        <button class="secondary-button" @onclick="Load" disabled="@_isLoading">Refresh</button>
     </div>
     <ol>
         @foreach (var entry in _entries)
@@ -19,6 +23,8 @@
 
 @code {
     private List<LeaderboardEntry> _entries = new();
+    private bool _isLoading;
+    private string? _error;
 
     protected override async Task OnInitializedAsync()
     {
@@ -28,14 +34,57 @@
 
     private async Task Load()
     {
-        var results = await Http.GetFromJsonAsync<List<LeaderboardEntry>>("/api/leaderboard");
-        _entries = results ?? new List<LeaderboardEntry>();
+        _isLoading = true;
+        _error = null;
+        try
+        {
+            var results = await Http.GetFromJsonAsync<List<LeaderboardEntry>>("/api/leaderboard");
+            _entries = results ?? new List<LeaderboardEntry>();
+        }
+        catch (HttpRequestException ex)
+        {
+            _error = "Unable to load the leaderboard right now.";
+            Console.Error.WriteLine($"Leaderboard fetch failed: {ex.Message}");
+        }
+        catch (NotSupportedException ex)
+        {
+            _error = "The leaderboard format was unexpected.";
+            Console.Error.WriteLine($"Leaderboard payload unsupported: {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            _error = "Something went wrong while loading the leaderboard.";
+            Console.Error.WriteLine($"Leaderboard load error: {ex.Message}");
+        }
+        finally
+        {
+            _isLoading = false;
+        }
     }
 
     private async Task Submit()
     {
+        _isLoading = true;
+        _error = null;
         var entry = new LeaderboardEntry("Player", ProfileService.Current.CorrectCount, DateTimeOffset.UtcNow);
-        await Http.PostAsJsonAsync("/api/leaderboard", entry);
-        await Load();
+        try
+        {
+            await Http.PostAsJsonAsync("/api/leaderboard", entry);
+            await Load();
+        }
+        catch (HttpRequestException ex)
+        {
+            _error = "Unable to submit your score right now.";
+            Console.Error.WriteLine($"Leaderboard submit failed: {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            _error = "Something went wrong while submitting your score.";
+            Console.Error.WriteLine($"Leaderboard submit error: {ex.Message}");
+        }
+        finally
+        {
+            _isLoading = false;
+        }
     }
 }
