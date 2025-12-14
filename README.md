@@ -58,7 +58,7 @@ Remove or replace iOS-only integrations such as AppTrackingTransparency, Game Ce
 
 ## Running the app
 1. Install the .NET 8 SDK locally.
-2. Restore and build from the repository root:
+2. Restore and build from the repository root. The server project now references the client, so a server build or publish will bundle the Blazor assets automatically:
    ```bash
    dotnet build TriviaWhip.Server/TriviaWhip.Server.csproj
    dotnet build TriviaWhip.Client/TriviaWhip.Client.csproj
