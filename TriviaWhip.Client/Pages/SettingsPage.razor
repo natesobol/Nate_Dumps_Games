@@ -6,10 +6,24 @@
 <div class="main-card">
     <div class="stat-grid">
         <div class="stat-card">
-            <label><input type="checkbox" @bind="SettingsService.Current.DarkTheme" /> Dark Theme</label>
-            <label><input type="checkbox" @bind="SettingsService.Current.TimerMode" /> Timer Mode</label>
-            <label><input type="checkbox" @bind="SettingsService.Current.AchievementMode" /> Achievement Mode</label>
-            <label><input type="checkbox" @bind="SettingsService.Current.EnableQuestionButtons" /> Help Icons</label>
+            <div class="setting-toggle-list">
+                <button type="button" class="checkbox-button toggle-button" @onclick="() => SettingsService.Current.DarkTheme = !SettingsService.Current.DarkTheme" aria-pressed="@SettingsService.Current.DarkTheme">
+                    <img class="checkbox-icon" src="@GetCheckboxImage(SettingsService.Current.DarkTheme)" alt="Dark Theme toggle" />
+                    <span>Dark Theme</span>
+                </button>
+                <button type="button" class="checkbox-button toggle-button" @onclick="() => SettingsService.Current.TimerMode = !SettingsService.Current.TimerMode" aria-pressed="@SettingsService.Current.TimerMode">
+                    <img class="checkbox-icon" src="@GetCheckboxImage(SettingsService.Current.TimerMode)" alt="Timer Mode toggle" />
+                    <span>Timer Mode</span>
+                </button>
+                <button type="button" class="checkbox-button toggle-button" @onclick="() => SettingsService.Current.AchievementMode = !SettingsService.Current.AchievementMode" aria-pressed="@SettingsService.Current.AchievementMode">
+                    <img class="checkbox-icon" src="@GetCheckboxImage(SettingsService.Current.AchievementMode)" alt="Achievement Mode toggle" />
+                    <span>Achievement Mode</span>
+                </button>
+                <button type="button" class="checkbox-button toggle-button" @onclick="() => SettingsService.Current.EnableQuestionButtons = !SettingsService.Current.EnableQuestionButtons" aria-pressed="@SettingsService.Current.EnableQuestionButtons">
+                    <img class="checkbox-icon" src="@GetCheckboxImage(SettingsService.Current.EnableQuestionButtons)" alt="Help Icons toggle" />
+                    <span>Help Icons</span>
+                </button>
+            </div>
         </div>
         <div class="stat-card">
             <label>Questions per Game</label>
@@ -50,5 +64,10 @@
     private async Task Save()
     {
         await SettingsService.SaveAsync();
+    }
+
+    private string GetCheckboxImage(bool isChecked)
+    {
+        return $"Files/{(isChecked ? "checked-white.png" : "unchecked-white.png")}";
     }
 }
