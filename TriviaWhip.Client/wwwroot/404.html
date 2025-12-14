@@ -2,19 +2,16 @@
 <html lang="en">
 <head>
     <meta charset="utf-8" />
-    <title>Trivia Whip</title>
-    <meta http-equiv="refresh" content="0; url=./index.html" />
+    <meta http-equiv="refresh" content="0; url=/" />
     <script>
+        const redirectTarget = window.location.pathname + window.location.search + window.location.hash;
+        sessionStorage.setItem('triviawhip-redirect', redirectTarget);
         // Fallback redirect for browsers that ignore meta refresh
-        (function () {
-            var basePath = window.location.pathname;
-            var lastSlash = basePath.lastIndexOf('/');
-            var prefix = lastSlash >= 0 ? basePath.substring(0, lastSlash + 1) : '/';
-            window.location.replace(prefix + 'index.html' + window.location.search + window.location.hash);
-        })();
+        window.location.replace('/');
     </script>
+    <title>Redirecting...</title>
 </head>
 <body>
-    <p>Redirecting to the Trivia Whip home page...</p>
+    <p>Redirecting to the Trivia Whip app...</p>
 </body>
 </html>
