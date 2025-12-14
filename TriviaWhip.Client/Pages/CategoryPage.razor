@@ -5,16 +5,22 @@
 
 <h2>Categories</h2>
 <div class="main-card">
-    <div class="button-bar">
-        <label><input type="checkbox" @bind="SettingsService.Current.AlphabeticalCategories" /> Alphabetical</label>
-        <label><input type="checkbox" @bind="SettingsService.Current.ViewCategoriesOnStart" /> Show on Start</label>
+    <div class="category-toolbar">
+        <button class="ghost-button" @onclick="() => SettingsService.Current.AlphabeticalCategories = !SettingsService.Current.AlphabeticalCategories">
+            <img src="@AssetCatalog.GetAssetPath(SettingsService.Current.AlphabeticalCategories ? "alphaview.png" : "categoryview.png")" alt="View toggle" />
+            <span>@(SettingsService.Current.AlphabeticalCategories ? "Alphabetical View" : "Category View")</span>
+        </button>
+        <button class="ghost-button" @onclick="() => SettingsService.Current.ViewCategoriesOnStart = !SettingsService.Current.ViewCategoriesOnStart">
+            <img src="@AssetCatalog.GetAssetPath(SettingsService.Current.ViewCategoriesOnStart ? "startupon.png" : "startupoff.png")" alt="Startup toggle" />
+            <span>Show on Start</span>
+        </button>
         <button class="primary-button" @onclick="Save">Save</button>
     </div>
     @if (!string.IsNullOrEmpty(_error))
     {
         <p class="text-danger">@_error</p>
     }
-    <div class="stat-grid" style="margin-top:1rem;">
+    <div class="category-grid">
         @if (_categories is null)
         {
             <p>Loading categories...</p>
@@ -23,17 +29,25 @@
         {
             foreach (var category in _categories)
             {
-                <div class="stat-card">
-                    <label>
-                        <input type="checkbox" checked="@SettingsService.Current.CategoriesSelected.Contains(category.Name)" @onchange="_ => ToggleCategory(category.Name)" />
-                        <strong>@category.Name</strong>
-                    </label>
-                    <div style="margin-top:0.5rem;">
+                <div class="category-card">
+                    <div class="category-header">
+                        <img class="icon" src="@category.Icon" alt="@category.Display icon" />
+                        <div>
+                            <div class="category-title">@category.Display</div>
+                            <button type="button" class="checkbox-button" @onclick="() => ToggleCategory(category.Key)">
+                                <img src="@GetCheckboxImage(SettingsService.Current.CategoriesSelected.Contains(category.Key))" alt="Category toggle" />
+                                <span>@(SettingsService.Current.CategoriesSelected.Contains(category.Key) ? "Selected" : "Tap to select")</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="subcategory-list">
                         @foreach (var sub in category.Subcategories)
                         {
-                            <div>
-                                <input type="checkbox" checked="@SettingsService.Current.SubCategoriesSelected.Contains(sub)" @onchange="_ => ToggleSubcategory(category.Name, sub)" /> @sub
-                            </div>
+                            <label class="subcategory-row">
+                                <img class="icon" src="@sub.Icon" alt="@sub.Display icon" />
+                                <input type="checkbox" checked="@SettingsService.Current.SubCategoriesSelected.Contains(sub.Key)" @onchange="_ => ToggleSubcategory(category.Key, sub.Key)" />
+                                <span>@sub.Display</span>
+                            </label>
                         }
                     </div>
                 </div>
@@ -47,7 +61,8 @@
     private List<CategoryGroup>? _categories;
     private string? _error;
 
-    private record CategoryGroup(string Name, List<string> Subcategories);
+    private record CategoryGroup(string Key, string Display, string Icon, List<SubcategoryItem> Subcategories);
+    private record SubcategoryItem(string Key, string Icon, string Display);
 
     protected override async Task OnInitializedAsync()
     {
@@ -70,11 +85,35 @@
         {
             var questions = await QuestionService.GetAllAsync();
             var grouped = questions
-                .GroupBy(q => q.Category)
-                .Select(g => new CategoryGroup(g.Key, g.Select(q => q.SubCategory).Distinct().OrderBy(x => x).ToList()));
+                .Select(q =>
+                {
+                    var parts = q.Category.Split('_', 2, StringSplitOptions.TrimEntries);
+                    var main = parts[0];
+                    var sub = parts.Length > 1 ? parts[1] : string.Empty;
+                    if (string.IsNullOrWhiteSpace(q.SubCategory) && !string.IsNullOrWhiteSpace(sub))
+                    {
+                        q.SubCategory = sub;
+                    }
+
+                    return new
+                    {
+                        Main = main,
+                        Sub = string.IsNullOrWhiteSpace(sub) ? main : sub
+                    };
+                })
+                .GroupBy(x => x.Main)
+                .Select(g => new CategoryGroup(
+                    g.Key,
+                    AssetCatalog.ToTitle(g.Key),
+                    AssetCatalog.GetMainCategoryIcon(g.Key),
+                    g.Select(x => x.Sub)
+                        .Distinct()
+                        .OrderBy(x => x)
+                        .Select(sub => new SubcategoryItem(sub, AssetCatalog.GetSubCategoryIcon(sub), AssetCatalog.ToTitle(sub)))
+                        .ToList()));
 
             _categories = SettingsService.Current.AlphabeticalCategories
-                ? grouped.OrderBy(g => g.Name).ToList()
+                ? grouped.OrderBy(g => g.Display).ToList()
                 : grouped.ToList();
         }
         catch (Exception ex)
@@ -85,23 +124,24 @@
         }
     }
 
-    private void ToggleCategory(string name)
+    private void ToggleCategory(string key)
     {
-        if (SettingsService.Current.CategoriesSelected.Contains(name))
+        var group = _categories?.FirstOrDefault(c => c.Key == key);
+        if (SettingsService.Current.CategoriesSelected.Contains(key))
         {
-            SettingsService.Current.CategoriesSelected.Remove(name);
-            foreach (var sub in _categories?.FirstOrDefault(c => c.Name == name)?.Subcategories ?? Enumerable.Empty<string>())
+            SettingsService.Current.CategoriesSelected.Remove(key);
+            if (group is not null)
             {
-                SettingsService.Current.SubCategoriesSelected.Remove(sub);
+                SettingsService.Current.SubCategoriesSelected.RemoveWhere(sub => group.Subcategories.Any(s => s.Key == sub));
             }
         }
         else
         {
-            SettingsService.Current.CategoriesSelected.Add(name);
+            SettingsService.Current.CategoriesSelected.Add(key);
         }
     }
 
-    private void ToggleSubcategory(string category, string sub)
+    private void ToggleSubcategory(string categoryKey, string sub)
     {
         if (SettingsService.Current.SubCategoriesSelected.Contains(sub))
         {
@@ -110,8 +150,16 @@
         else
         {
             SettingsService.Current.SubCategoriesSelected.Add(sub);
-            SettingsService.Current.CategoriesSelected.Add(category);
+            SettingsService.Current.CategoriesSelected.Add(categoryKey);
         }
+    }
+
+    private string GetCheckboxImage(bool selected)
+    {
+        var darkMode = SettingsService.Current.DarkTheme;
+        return selected
+            ? AssetCatalog.GetAssetPath(darkMode ? "checked-white.png" : "check.png")
+            : AssetCatalog.GetAssetPath(darkMode ? "unchecked-white.png" : "unchecked.png");
     }
 
     private async Task Save()

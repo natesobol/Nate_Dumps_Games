@@ -1,4 +1,6 @@
 using System.Collections.Concurrent;
+using System.IO;
+using Microsoft.Extensions.FileProviders;
 using TriviaWhip.Shared.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -23,6 +25,11 @@ if (app.Environment.IsDevelopment())
 app.UseCors();
 app.UseBlazorFrameworkFiles();
 app.UseStaticFiles();
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(Path.Combine(app.Environment.ContentRootPath, "Files")),
+    RequestPath = "/Files"
+});
 
 app.MapGet("/api/leaderboard", (ConcurrentBag<LeaderboardEntry> store) =>
 {

@@ -9,18 +9,41 @@
 }
 else
 {
-    <div class="main-card">
-        <h2>Results</h2>
-        <p>You answered @GameEngine.CurrentSession.CorrectCount of @GameEngine.CurrentSession.Questions.Count correctly.</p>
-        <p>Coins earned: @GameEngine.CurrentSession.CoinsEarned</p>
-        <div class="stat-grid">
-            <div class="stat-card"><strong>Correct</strong><p>@GameEngine.CurrentSession.CorrectCount</p></div>
-            <div class="stat-card"><strong>Incorrect</strong><p>@GameEngine.CurrentSession.IncorrectCount</p></div>
-            <div class="stat-card"><strong>Streak</strong><p>@ProfileService.Current.BestStreak</p></div>
+    <div class="main-card score-card">
+        <div class="score-hero">
+            <img src="@AssetCatalog.GetAssetPath("mission-accomplished.png")" alt="Mission accomplished" />
+            <div>
+                <h2>Results</h2>
+                <p>You answered @GameEngine.CurrentSession.CorrectCount of @GameEngine.CurrentSession.Questions.Count correctly.</p>
+                <p>Coins earned: @GameEngine.CurrentSession.CoinsEarned</p>
+            </div>
         </div>
+
+        <div class="score-grid">
+            <div class="score-pill">
+                <img class="icon" src="@AssetCatalog.GetAssetPath("correct.png")" alt="Correct" />
+                <span>@GameEngine.CurrentSession.CorrectCount</span>
+                <img class="inline-icon" src="@AssetCatalog.GetAssetPath("divide-mathematical-sign.png")" alt="/" />
+                <span>@GameEngine.CurrentSession.Questions.Count</span>
+            </div>
+            <div class="score-pill">
+                <img class="icon" src="@AssetCatalog.GetAssetPath("incorrect.png")" alt="Incorrect" />
+                <span>@GameEngine.CurrentSession.IncorrectCount</span>
+            </div>
+            <div class="score-pill">
+                <img class="icon" src="@AssetCatalog.GetAssetPath("heartico.png")" alt="Streak" />
+                <span>@ProfileService.Current.BestStreak best streak</span>
+            </div>
+        </div>
+
         <div class="button-bar" style="margin-top:1rem;">
-            <button class="primary-button" @onclick="@(() => Nav.NavigateTo("/"))">Back to Title</button>
-            <button class="secondary-button" @onclick="@(() => Nav.NavigateTo("/leaderboard"))">Leaderboard</button>
+            <button class="image-button" @onclick="@(() => Nav.NavigateTo("/"))">
+                <img src="@AssetCatalog.GetAssetPath("finishfinal.png")" alt="Back to Title" />
+            </button>
+            <button class="secondary-button" @onclick="@(() => Nav.NavigateTo("/leaderboard"))">
+                <img class="icon" src="@AssetCatalog.GetAssetPath("leaderboard.png")" alt="Leaderboard" />
+                Leaderboard
+            </button>
         </div>
     </div>
 }
