@@ -4,10 +4,17 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Trivia Whip</title>
-    <base href="./" />
+    <base href="/" />
     <link rel="stylesheet" href="css/app.css" />
 </head>
 <body>
+    <script>
+        const redirectPath = sessionStorage.getItem('triviawhip-redirect');
+        if (redirectPath) {
+            sessionStorage.removeItem('triviawhip-redirect');
+            window.history.replaceState(null, '', redirectPath);
+        }
+    </script>
     <div id="app">Loading...</div>
     <script src="_framework/blazor.webassembly.js"></script>
 </body>
