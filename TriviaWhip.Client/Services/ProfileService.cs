@@ -20,19 +20,26 @@ public class ProfileService
 
     public async Task InitializeAsync()
     {
-        var json = await _jsRuntime.InvokeAsync<string?>("localStorage.getItem", StorageKey);
-        if (!string.IsNullOrWhiteSpace(json))
+        try
         {
-            var restored = JsonSerializer.Deserialize<Profile>(json);
-            if (restored is not null)
+            var json = await _jsRuntime.InvokeAsync<string?>("localStorage.getItem", StorageKey);
+            if (!string.IsNullOrWhiteSpace(json))
             {
-                Current = restored;
-                if (!Current.Milestones.Any())
+                var restored = JsonSerializer.Deserialize<Profile>(json);
+                if (restored is not null)
                 {
-                    Current.Milestones = BuildMilestones();
+                    Current = restored;
+                    if (!Current.Milestones.Any())
+                    {
+                        Current.Milestones = BuildMilestones();
+                    }
+                    return;
                 }
-                return;
             }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Failed to load profile from local storage: {ex.Message}");
         }
 
         Current.Milestones = BuildMilestones();
@@ -42,8 +49,16 @@ public class ProfileService
 
     public async Task SaveAsync()
     {
-        var json = JsonSerializer.Serialize(Current);
-        await _jsRuntime.InvokeVoidAsync("localStorage.setItem", StorageKey, json);
+        try
+        {
+            var json = JsonSerializer.Serialize(Current);
+            await _jsRuntime.InvokeVoidAsync("localStorage.setItem", StorageKey, json);
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Failed to persist profile: {ex.Message}");
+        }
+
         Changed?.Invoke();
     }
 

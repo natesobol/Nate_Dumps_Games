@@ -105,7 +105,7 @@ public class GameEngine
         StateChanged?.Invoke();
     }
 
-    public void NextQuestion()
+    public async Task NextQuestionAsync()
     {
         if (CurrentSession is null)
         {
@@ -117,7 +117,7 @@ public class GameEngine
             CurrentSession.IsComplete = true;
             _profileService.Current.Level = CalculateLevel(_profileService.Current.CorrectCount);
             _profileService.Current.Lives = Math.Max(CurrentSession.Lives, 1);
-            _profileService.SaveAsync();
+            await _profileService.SaveAsync();
             StateChanged?.Invoke();
             return;
         }

@@ -19,15 +19,22 @@ public class SettingsService
 
     public async Task InitializeAsync()
     {
-        var json = await _jsRuntime.InvokeAsync<string?>("localStorage.getItem", StorageKey);
-        if (!string.IsNullOrWhiteSpace(json))
+        try
         {
-            var restored = JsonSerializer.Deserialize<Settings>(json);
-            if (restored is not null)
+            var json = await _jsRuntime.InvokeAsync<string?>("localStorage.getItem", StorageKey);
+            if (!string.IsNullOrWhiteSpace(json))
             {
-                Current = restored;
-                return;
+                var restored = JsonSerializer.Deserialize<Settings>(json);
+                if (restored is not null)
+                {
+                    Current = restored;
+                    return;
+                }
             }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Failed to load settings from local storage: {ex.Message}");
         }
 
         Current = new Settings
@@ -45,8 +52,16 @@ public class SettingsService
 
     public async Task SaveAsync()
     {
-        var json = JsonSerializer.Serialize(Current);
-        await _jsRuntime.InvokeVoidAsync("localStorage.setItem", StorageKey, json);
+        try
+        {
+            var json = JsonSerializer.Serialize(Current);
+            await _jsRuntime.InvokeVoidAsync("localStorage.setItem", StorageKey, json);
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Failed to persist settings: {ex.Message}");
+        }
+
         Changed?.Invoke();
     }
 }

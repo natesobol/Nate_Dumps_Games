@@ -3,6 +3,7 @@
 @inject NavigationManager Nav
 @inject SettingsService SettingsService
 @inject ProfileService ProfileService
+@implements IDisposable
 
 @if (GameEngine.CurrentQuestion is null || GameEngine.CurrentSession is null || GameEngine.CurrentSession.IsComplete)
 {
@@ -95,9 +96,9 @@ else
         GameEngine.UseSkip();
     }
 
-    private void Next()
+    private async Task Next()
     {
-        GameEngine.NextQuestion();
+        await GameEngine.NextQuestionAsync();
         _answered = false;
         _selectedIndex = -1;
         _wasCorrect = false;
@@ -105,5 +106,10 @@ else
         {
             Nav.NavigateTo("/score");
         }
+    }
+
+    public void Dispose()
+    {
+        GameEngine.StateChanged -= OnChanged;
     }
 }

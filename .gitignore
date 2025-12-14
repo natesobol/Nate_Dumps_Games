@@ -1,0 +1,15 @@
+# Build outputs
+bin/
+obj/
+**/bin/
+**/obj/
+docs/
+
+# Local artifacts
+*.user
+*.suo
+*.swp
+packages-microsoft-prod.deb
+
+# Published server logs
+*.log

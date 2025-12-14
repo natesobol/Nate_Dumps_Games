@@ -21,12 +21,31 @@ public class QuestionService
             return _cache;
         }
 
-        var questions = await _httpClient.GetFromJsonAsync<List<Question>>("data/questions.json", new JsonSerializerOptions
+        try
         {
-            PropertyNameCaseInsensitive = true
-        });
+            var questions = await _httpClient.GetFromJsonAsync<List<Question>>("data/questions.json", new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
 
-        _cache = questions ?? new List<Question>();
+            _cache = questions ?? new List<Question>();
+        }
+        catch (HttpRequestException ex)
+        {
+            Console.Error.WriteLine($"Failed to fetch questions: {ex.Message}");
+            _cache = new List<Question>();
+        }
+        catch (NotSupportedException ex)
+        {
+            Console.Error.WriteLine($"Questions payload type unsupported: {ex.Message}");
+            _cache = new List<Question>();
+        }
+        catch (JsonException ex)
+        {
+            Console.Error.WriteLine($"Failed to parse questions: {ex.Message}");
+            _cache = new List<Question>();
+        }
+
         return _cache;
     }
 

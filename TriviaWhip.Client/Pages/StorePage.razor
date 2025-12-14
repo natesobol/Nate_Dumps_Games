@@ -38,27 +38,29 @@
         await SettingsService.InitializeAsync();
     }
 
-    private void BuyScheme(int id)
+    private async Task BuyScheme(int id)
     {
         if (PurchaseService.TryPurchaseScheme(id, 100))
         {
             SettingsService.Current.SchemeColor = id;
+            await Task.WhenAll(ProfileService.SaveAsync(), SettingsService.SaveAsync());
         }
     }
 
-    private void BuyAvatar(int id)
+    private async Task BuyAvatar(int id)
     {
         if (PurchaseService.TryPurchaseAvatar(id, 150))
         {
             SettingsService.Current.Avatar = id;
+            await Task.WhenAll(ProfileService.SaveAsync(), SettingsService.SaveAsync());
         }
     }
 
-    private void BuyBuff(int id, int cost)
+    private async Task BuyBuff(int id, int cost)
     {
         if (PurchaseService.TryPurchaseBuff(id, cost))
         {
-            ProfileService.SaveAsync();
+            await ProfileService.SaveAsync();
         }
     }
 }
