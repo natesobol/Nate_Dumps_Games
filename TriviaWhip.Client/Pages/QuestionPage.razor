@@ -55,9 +55,9 @@ else
     private bool _initialized;
     private int _selectedIndex = -1;
 
-    private double ProgressWidth => GameEngine.CurrentSession is null
-        ? 0
-        : ((double)GameEngine.CurrentSession.CurrentIndex / GameEngine.CurrentSession.Questions.Count) * 100;
+    private double ProgressWidth => GameEngine.CurrentSession is { Questions.Count: > 0 } session
+        ? ((double)session.CurrentIndex / session.Questions.Count) * 100
+        : 0;
 
     private bool _isLastQuestion => GameEngine.CurrentSession is not null && GameEngine.CurrentSession.CurrentIndex + 1 >= GameEngine.CurrentSession.Questions.Count;
 

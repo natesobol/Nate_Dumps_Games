@@ -10,6 +10,10 @@
         <label><input type="checkbox" @bind="SettingsService.Current.ViewCategoriesOnStart" /> Show on Start</label>
         <button class="primary-button" @onclick="Save">Save</button>
     </div>
+    @if (!string.IsNullOrEmpty(_error))
+    {
+        <p class="text-danger">@_error</p>
+    }
     <div class="stat-grid" style="margin-top:1rem;">
         @if (_categories is null)
         {
@@ -41,6 +45,7 @@
 @code {
     private bool _initialized;
     private List<CategoryGroup>? _categories;
+    private string? _error;
 
     private record CategoryGroup(string Name, List<string> Subcategories);
 
@@ -60,13 +65,24 @@
 
     private async Task LoadCategories()
     {
-        var questions = await QuestionService.GetAllAsync();
-        var grouped = questions
-            .GroupBy(q => q.Category)
-            .Select(g => new CategoryGroup(g.Key, g.Select(q => q.SubCategory).Distinct().OrderBy(x => x).ToList()))
-            .OrderBy(g => SettingsService.Current.AlphabeticalCategories ? g.Name : g.Name)
-            .ToList();
-        _categories = grouped;
+        _error = null;
+        try
+        {
+            var questions = await QuestionService.GetAllAsync();
+            var grouped = questions
+                .GroupBy(q => q.Category)
+                .Select(g => new CategoryGroup(g.Key, g.Select(q => q.SubCategory).Distinct().OrderBy(x => x).ToList()));
+
+            _categories = SettingsService.Current.AlphabeticalCategories
+                ? grouped.OrderBy(g => g.Name).ToList()
+                : grouped.ToList();
+        }
+        catch (Exception ex)
+        {
+            _categories = new List<CategoryGroup>();
+            _error = "Unable to load categories right now.";
+            Console.Error.WriteLine($"Failed to load categories: {ex.Message}");
+        }
     }
 
     private void ToggleCategory(string name)
