@@ -1,0 +1,45 @@
+@page "/feedback"
+@inject HttpClient Http
+@inject SettingsService SettingsService
+
+<h2>Feedback</h2>
+<div class="main-card">
+    <label>Email</label>
+    <input @bind="SettingsService.Current.LastEmailAddress" type="email" />
+    <label>Subject</label>
+    <input @bind="Subject" />
+    <label>Message</label>
+    <textarea rows="6" @bind="Body"></textarea>
+    <div class="button-bar" style="margin-top:1rem;">
+        <button class="primary-button" @onclick="Send">Send</button>
+    </div>
+    @if (!string.IsNullOrEmpty(_status))
+    {
+        <p>@_status</p>
+    }
+</div>
+
+@code {
+    private string Subject { get; set; } = "Trivia Whip feedback";
+    private string Body { get; set; } = string.Empty;
+    private string _status = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await SettingsService.InitializeAsync();
+    }
+
+    private async Task Send()
+    {
+        var payload = new FeedbackRequest
+        {
+            Email = SettingsService.Current.LastEmailAddress,
+            Subject = Subject,
+            Body = Body
+        };
+
+        var response = await Http.PostAsJsonAsync("/api/mail/send", payload);
+        _status = response.IsSuccessStatusCode ? "Sent" : "Failed to send";
+        await SettingsService.SaveAsync();
+    }
+}

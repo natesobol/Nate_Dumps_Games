@@ -1,0 +1,105 @@
+@page "/categories"
+@inject SettingsService SettingsService
+@inject ProfileService ProfileService
+@inject QuestionService QuestionService
+
+<h2>Categories</h2>
+<div class="main-card">
+    <div class="button-bar">
+        <label><input type="checkbox" @bind="SettingsService.Current.AlphabeticalCategories" /> Alphabetical</label>
+        <label><input type="checkbox" @bind="SettingsService.Current.ViewCategoriesOnStart" /> Show on Start</label>
+        <button class="primary-button" @onclick="Save">Save</button>
+    </div>
+    <div class="stat-grid" style="margin-top:1rem;">
+        @if (_categories is null)
+        {
+            <p>Loading categories...</p>
+        }
+        else
+        {
+            foreach (var category in _categories)
+            {
+                <div class="stat-card">
+                    <label>
+                        <input type="checkbox" checked="@SettingsService.Current.CategoriesSelected.Contains(category.Name)" @onchange="_ => ToggleCategory(category.Name)" />
+                        <strong>@category.Name</strong>
+                    </label>
+                    <div style="margin-top:0.5rem;">
+                        @foreach (var sub in category.Subcategories)
+                        {
+                            <div>
+                                <input type="checkbox" checked="@SettingsService.Current.SubCategoriesSelected.Contains(sub)" @onchange="_ => ToggleSubcategory(category.Name, sub)" /> @sub
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+@code {
+    private bool _initialized;
+    private List<CategoryGroup>? _categories;
+
+    private record CategoryGroup(string Name, List<string> Subcategories);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await EnsureLoadedAsync();
+        await LoadCategories();
+    }
+
+    private async Task EnsureLoadedAsync()
+    {
+        if (_initialized) return;
+        await SettingsService.InitializeAsync();
+        await ProfileService.InitializeAsync();
+        _initialized = true;
+    }
+
+    private async Task LoadCategories()
+    {
+        var questions = await QuestionService.GetAllAsync();
+        var grouped = questions
+            .GroupBy(q => q.Category)
+            .Select(g => new CategoryGroup(g.Key, g.Select(q => q.SubCategory).Distinct().OrderBy(x => x).ToList()))
+            .OrderBy(g => SettingsService.Current.AlphabeticalCategories ? g.Name : g.Name)
+            .ToList();
+        _categories = grouped;
+    }
+
+    private void ToggleCategory(string name)
+    {
+        if (SettingsService.Current.CategoriesSelected.Contains(name))
+        {
+            SettingsService.Current.CategoriesSelected.Remove(name);
+            foreach (var sub in _categories?.FirstOrDefault(c => c.Name == name)?.Subcategories ?? Enumerable.Empty<string>())
+            {
+                SettingsService.Current.SubCategoriesSelected.Remove(sub);
+            }
+        }
+        else
+        {
+            SettingsService.Current.CategoriesSelected.Add(name);
+        }
+    }
+
+    private void ToggleSubcategory(string category, string sub)
+    {
+        if (SettingsService.Current.SubCategoriesSelected.Contains(sub))
+        {
+            SettingsService.Current.SubCategoriesSelected.Remove(sub);
+        }
+        else
+        {
+            SettingsService.Current.SubCategoriesSelected.Add(sub);
+            SettingsService.Current.CategoriesSelected.Add(category);
+        }
+    }
+
+    private async Task Save()
+    {
+        await SettingsService.SaveAsync();
+    }
+}

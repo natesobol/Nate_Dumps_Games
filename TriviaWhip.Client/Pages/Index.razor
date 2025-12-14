@@ -1,0 +1,73 @@
+@page "/"
+@inject SettingsService SettingsService
+@inject ProfileService ProfileService
+@inject GameEngine GameEngine
+@inject NavigationManager Nav
+
+<h1>Trivia Whip</h1>
+
+<div class="main-card">
+    <p class="text-muted">Coins: @ProfileService.Current.Coins | Level @ProfileService.Current.Level</p>
+    <div class="progress-bar" title="Progress to next milestone">
+        <span style="width:@ProgressPercent%"></span>
+    </div>
+    <p>@ProfileService.Current.CorrectCount / @NextMilestone correct answers</p>
+
+    <div class="button-bar">
+        <button class="primary-button" @onclick="StartGame">Play</button>
+        <button class="secondary-button" @onclick="() => Nav.NavigateTo("/categories")">Categories</button>
+        <button class="secondary-button" @onclick="() => Nav.NavigateTo("/store")">Store</button>
+        <button class="secondary-button" @onclick="() => Nav.NavigateTo("/settings")">Settings</button>
+    </div>
+
+    <div class="stat-grid" style="margin-top:1rem;">
+        <div class="stat-card">
+            <strong>Selected Categories</strong>
+            <p>@string.Join(", ", SettingsService.Current.CategoriesSelected.DefaultIfEmpty("All"))</p>
+        </div>
+        <div class="stat-card">
+            <strong>Question Count</strong>
+            <p>@SettingsService.Current.QuestionCount</p>
+        </div>
+        <div class="stat-card">
+            <strong>Timer Mode</strong>
+            <p>@(SettingsService.Current.TimerMode ? "Enabled" : "Off")</p>
+        </div>
+    </div>
+</div>
+
+@code {
+    private bool _initialized;
+
+    private int NextMilestone => ProfileService.Current.Milestones.FirstOrDefault(m => m > ProfileService.Current.CorrectCount, ProfileService.Current.Milestones.LastOrDefault(300));
+    private int ProgressPercent => NextMilestone == 0 ? 100 : (int)(Math.Min(1, (double)ProfileService.Current.CorrectCount / NextMilestone) * 100);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await EnsureLoadedAsync();
+        GameEngine.StateChanged += OnChanged;
+    }
+
+    private async Task EnsureLoadedAsync()
+    {
+        if (_initialized) return;
+        await SettingsService.InitializeAsync();
+        await ProfileService.InitializeAsync();
+        _initialized = true;
+    }
+
+    private async Task StartGame()
+    {
+        await EnsureLoadedAsync();
+        await GameEngine.StartGameAsync();
+        if (GameEngine.CurrentSession is { IsComplete: false })
+        {
+            Nav.NavigateTo("/question");
+        }
+    }
+
+    private void OnChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+}

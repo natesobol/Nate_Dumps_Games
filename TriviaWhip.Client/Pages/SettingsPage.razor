@@ -1,0 +1,54 @@
+@page "/settings"
+@inject SettingsService SettingsService
+@inject ProfileService ProfileService
+
+<h2>Settings</h2>
+<div class="main-card">
+    <div class="stat-grid">
+        <div class="stat-card">
+            <label><input type="checkbox" @bind="SettingsService.Current.DarkTheme" /> Dark Theme</label>
+            <label><input type="checkbox" @bind="SettingsService.Current.TimerMode" /> Timer Mode</label>
+            <label><input type="checkbox" @bind="SettingsService.Current.AchievementMode" /> Achievement Mode</label>
+            <label><input type="checkbox" @bind="SettingsService.Current.EnableQuestionButtons" /> Help Icons</label>
+        </div>
+        <div class="stat-card">
+            <label>Questions per Game</label>
+            <input type="range" min="5" max="50" step="5" @bind="SettingsService.Current.QuestionCount" />
+            <p>@SettingsService.Current.QuestionCount questions</p>
+        </div>
+        <div class="stat-card">
+            <label>Scheme Color</label>
+            <select @bind="SettingsService.Current.SchemeColor">
+                @for (var i = 0; i < 9; i++)
+                {
+                    <option value="@i">Scheme @i</option>
+                }
+            </select>
+        </div>
+        <div class="stat-card">
+            <label>Avatar</label>
+            <select @bind="SettingsService.Current.Avatar">
+                @for (var i = 0; i < 9; i++)
+                {
+                    <option value="@i">Avatar @i</option>
+                }
+            </select>
+        </div>
+    </div>
+    <div class="button-bar" style="margin-top:1rem;">
+        <button class="primary-button" @onclick="Save">Save Settings</button>
+    </div>
+</div>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await SettingsService.InitializeAsync();
+        await ProfileService.InitializeAsync();
+    }
+
+    private async Task Save()
+    {
+        await SettingsService.SaveAsync();
+    }
+}

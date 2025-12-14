@@ -1,0 +1,26 @@
+@page "/score"
+@inject GameEngine GameEngine
+@inject NavigationManager Nav
+@inject ProfileService ProfileService
+
+@if (GameEngine.CurrentSession is null)
+{
+    <p>No completed session. <a href="/">Return home</a>.</p>
+}
+else
+{
+    <div class="main-card">
+        <h2>Results</h2>
+        <p>You answered @GameEngine.CurrentSession.CorrectCount of @GameEngine.CurrentSession.Questions.Count correctly.</p>
+        <p>Coins earned: @GameEngine.CurrentSession.CoinsEarned</p>
+        <div class="stat-grid">
+            <div class="stat-card"><strong>Correct</strong><p>@GameEngine.CurrentSession.CorrectCount</p></div>
+            <div class="stat-card"><strong>Incorrect</strong><p>@GameEngine.CurrentSession.IncorrectCount</p></div>
+            <div class="stat-card"><strong>Streak</strong><p>@ProfileService.Current.BestStreak</p></div>
+        </div>
+        <div class="button-bar" style="margin-top:1rem;">
+            <button class="primary-button" @onclick="() => Nav.NavigateTo("/")">Back to Title</button>
+            <button class="secondary-button" @onclick="() => Nav.NavigateTo("/leaderboard")">Leaderboard</button>
+        </div>
+    </div>
+}

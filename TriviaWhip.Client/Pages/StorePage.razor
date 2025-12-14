@@ -1,0 +1,64 @@
+@page "/store"
+@inject PurchaseService PurchaseService
+@inject ProfileService ProfileService
+@inject SettingsService SettingsService
+
+<h2>Store</h2>
+<div class="main-card">
+    <p>Coins: @ProfileService.Current.Coins</p>
+    <h4>Scheme Colors (100 coins)</h4>
+    <div class="button-bar">
+        @for (var i = 0; i < 5; i++)
+        {
+            var owned = ProfileService.Current.OwnedSchemes.Contains(i);
+            <button class="secondary-button" disabled="@(owned)" @onclick="() => BuyScheme(i)">Scheme @i @(owned ? "Owned" : string.Empty)</button>
+        }
+    </div>
+    <h4>Avatars (150 coins)</h4>
+    <div class="button-bar">
+        @for (var i = 0; i < 5; i++)
+        {
+            var owned = ProfileService.Current.OwnedAvatars.Contains(i);
+            <button class="secondary-button" disabled="@(owned)" @onclick="() => BuyAvatar(i)">Avatar @i @(owned ? "Owned" : string.Empty)</button>
+        }
+    </div>
+    <h4>Buffs</h4>
+    <div class="button-bar">
+        <button class="secondary-button" disabled="@ProfileService.Current.OwnedBuffs.Contains(1)" @onclick="() => BuyBuff(1, 300)">Coin +20%</button>
+        <button class="secondary-button" disabled="@ProfileService.Current.OwnedBuffs.Contains(2)" @onclick="() => BuyBuff(2, 350)">Correct +10%</button>
+        <button class="secondary-button" disabled="@ProfileService.Current.OwnedBuffs.Contains(3)" @onclick="() => BuyBuff(3, 250)">Skip Half Cost</button>
+        <button class="secondary-button" disabled="@ProfileService.Current.OwnedBuffs.Contains(4)" @onclick="() => BuyBuff(4, 400)">Extra Life</button>
+    </div>
+</div>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await ProfileService.InitializeAsync();
+        await SettingsService.InitializeAsync();
+    }
+
+    private void BuyScheme(int id)
+    {
+        if (PurchaseService.TryPurchaseScheme(id, 100))
+        {
+            SettingsService.Current.SchemeColor = id;
+        }
+    }
+
+    private void BuyAvatar(int id)
+    {
+        if (PurchaseService.TryPurchaseAvatar(id, 150))
+        {
+            SettingsService.Current.Avatar = id;
+        }
+    }
+
+    private void BuyBuff(int id, int cost)
+    {
+        if (PurchaseService.TryPurchaseBuff(id, cost))
+        {
+            ProfileService.SaveAsync();
+        }
+    }
+}

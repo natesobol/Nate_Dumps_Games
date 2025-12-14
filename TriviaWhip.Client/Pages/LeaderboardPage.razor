@@ -1,0 +1,41 @@
+@page "/leaderboard"
+@inject HttpClient Http
+@inject ProfileService ProfileService
+
+<h2>Leaderboard</h2>
+<div class="main-card">
+    <p>Submit your latest score to the community board.</p>
+    <div class="button-bar">
+        <button class="primary-button" @onclick="Submit">Submit Score</button>
+        <button class="secondary-button" @onclick="Load">Refresh</button>
+    </div>
+    <ol>
+        @foreach (var entry in _entries)
+        {
+            <li>@entry.Player - @entry.Score</li>
+        }
+    </ol>
+</div>
+
+@code {
+    private List<LeaderboardEntry> _entries = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ProfileService.InitializeAsync();
+        await Load();
+    }
+
+    private async Task Load()
+    {
+        var results = await Http.GetFromJsonAsync<List<LeaderboardEntry>>("/api/leaderboard");
+        _entries = results ?? new List<LeaderboardEntry>();
+    }
+
+    private async Task Submit()
+    {
+        var entry = new LeaderboardEntry("Player", ProfileService.Current.CorrectCount, DateTimeOffset.UtcNow);
+        await Http.PostAsJsonAsync("/api/leaderboard", entry);
+        await Load();
+    }
+}

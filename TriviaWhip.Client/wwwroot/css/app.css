@@ -1,0 +1,144 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    background: #0d1117;
+    color: #e6edf3;
+}
+
+.page {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    min-height: 100vh;
+}
+
+.sidebar {
+    background: #161b22;
+    padding: 1rem;
+}
+
+.nav-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.nav-menu ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.nav-menu a {
+    color: #e6edf3;
+    text-decoration: none;
+}
+
+.main-card {
+    background: #161b22;
+    border-radius: 12px;
+    padding: 1rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.button-bar {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.primary-button {
+    background: #58a6ff;
+    border: none;
+    color: #0d1117;
+    padding: 0.75rem 1.25rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.secondary-button {
+    background: transparent;
+    border: 1px solid #30363d;
+    color: #e6edf3;
+    padding: 0.65rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.choice-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.75rem;
+}
+
+.choice-button {
+    width: 100%;
+    padding: 1rem;
+    border-radius: 10px;
+    background: #21262d;
+    border: 1px solid #30363d;
+    color: #e6edf3;
+    text-align: left;
+    cursor: pointer;
+}
+
+.choice-button.correct {
+    border-color: #2ea043;
+    background: rgba(46, 160, 67, 0.2);
+}
+
+.choice-button.incorrect {
+    border-color: #f85149;
+    background: rgba(248, 81, 73, 0.15);
+}
+
+.progress-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.progress-bar {
+    flex: 1;
+    height: 8px;
+    background: #30363d;
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.progress-bar span {
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, #58a6ff, #7ee787);
+}
+
+.stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.75rem;
+}
+
+.stat-card {
+    padding: 0.75rem;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    background: #161b22;
+}
+
+form label {
+    display: block;
+    margin-bottom: 0.35rem;
+    font-weight: 600;
+}
+
+input, select, textarea {
+    width: 100%;
+    padding: 0.5rem;
+    border-radius: 6px;
+    border: 1px solid #30363d;
+    background: #0d1117;
+    color: #e6edf3;
+}

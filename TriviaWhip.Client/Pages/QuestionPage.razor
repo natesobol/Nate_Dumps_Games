@@ -1,0 +1,109 @@
+@page "/question"
+@inject GameEngine GameEngine
+@inject NavigationManager Nav
+@inject SettingsService SettingsService
+@inject ProfileService ProfileService
+
+@if (GameEngine.CurrentQuestion is null || GameEngine.CurrentSession is null || GameEngine.CurrentSession.IsComplete)
+{
+    <p class="text-muted">No active game. <a href="/">Return to title.</a></p>
+}
+else
+{
+    <div class="main-card">
+        <div class="progress-row">
+            <strong>Question @((GameEngine.CurrentSession.CurrentIndex + 1)) / @GameEngine.CurrentSession.Questions.Count</strong>
+            <div class="progress-bar">
+                <span style="width:@ProgressWidth%"></span>
+            </div>
+            <span>Lives: @GameEngine.CurrentSession.Lives</span>
+            <span>Coins: @ProfileService.Current.Coins</span>
+        </div>
+
+        <h3 style="margin-top:1rem;">@GameEngine.CurrentQuestion.Prompt</h3>
+
+        <div class="choice-grid">
+            @for (var i = 0; i < GameEngine.CurrentQuestion.Choices.Count; i++)
+            {
+                var choice = GameEngine.CurrentQuestion.Choices[i];
+                var disabled = _answered || GameEngine.HiddenChoices.Contains(i);
+                var classes = "choice-button";
+                if (_answered && i == GameEngine.CurrentQuestion.AnswerIndex)
+                {
+                    classes += " correct";
+                }
+                else if (_answered && i == _selectedIndex && ! _wasCorrect)
+                {
+                    classes += " incorrect";
+                }
+
+                <button class="@classes" disabled="@disabled" @onclick="() => Submit(i)">@choice</button>
+            }
+        </div>
+
+        <div class="button-bar" style="margin-top:1rem;">
+            <button class="secondary-button" @onclick="UseSkip" disabled="@_answered">50-50</button>
+            <button class="primary-button" @onclick="Next" disabled="@(!_answered)">@(_isLastQuestion ? "End Game" : "Next Question")</button>
+        </div>
+    </div>
+}
+
+@code {
+    private bool _answered;
+    private bool _wasCorrect;
+    private bool _initialized;
+    private int _selectedIndex = -1;
+
+    private double ProgressWidth => GameEngine.CurrentSession is null
+        ? 0
+        : ((double)GameEngine.CurrentSession.CurrentIndex / GameEngine.CurrentSession.Questions.Count) * 100;
+
+    private bool _isLastQuestion => GameEngine.CurrentSession is not null && GameEngine.CurrentSession.CurrentIndex + 1 >= GameEngine.CurrentSession.Questions.Count;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await EnsureLoadedAsync();
+        GameEngine.StateChanged += OnChanged;
+        if (GameEngine.CurrentSession is null)
+        {
+            await GameEngine.StartGameAsync();
+        }
+    }
+
+    private async Task EnsureLoadedAsync()
+    {
+        if (_initialized) return;
+        await SettingsService.InitializeAsync();
+        await ProfileService.InitializeAsync();
+        _initialized = true;
+    }
+
+    private void OnChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void Submit(int index)
+    {
+        _selectedIndex = index;
+        _answered = true;
+        _wasCorrect = GameEngine.SubmitAnswer(index);
+    }
+
+    private void UseSkip()
+    {
+        GameEngine.UseSkip();
+    }
+
+    private void Next()
+    {
+        GameEngine.NextQuestion();
+        _answered = false;
+        _selectedIndex = -1;
+        _wasCorrect = false;
+        if (GameEngine.CurrentSession?.IsComplete == true)
+        {
+            Nav.NavigateTo("/score");
+        }
+    }
+}
