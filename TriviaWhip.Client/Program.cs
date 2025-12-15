@@ -3,18 +3,21 @@ using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using TriviaWhip.Client;
 using TriviaWhip.Client.Services;
 using Supabase;
+using Microsoft.Extensions.Options;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
+builder.Services.Configure<SupabaseSettings>(builder.Configuration.GetSection("Supabase"));
 builder.Services.AddSingleton(provider =>
 {
     var config = provider.GetRequiredService<IConfiguration>();
+    var supabaseSettings = provider.GetRequiredService<IOptions<SupabaseSettings>>().Value;
     return new Supabase.Client(
-        config["Supabase:Url"] ?? string.Empty,
-        config["Supabase:AnonKey"] ?? string.Empty);
+        supabaseSettings.Url ?? config["Supabase:Url"] ?? string.Empty,
+        supabaseSettings.AnonKey ?? config["Supabase:AnonKey"] ?? string.Empty);
 });
 builder.Services.AddScoped<QuestionService>();
 builder.Services.AddScoped<SettingsService>();

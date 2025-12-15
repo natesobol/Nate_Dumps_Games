@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 using Supabase;
 using Supabase.Gotrue;
+using TriviaWhip.Client;
 using TriviaWhip.Shared.Models;
 using GotrueSession = Supabase.Gotrue.Session;
 
@@ -12,6 +14,7 @@ namespace TriviaWhip.Client.Services;
 public class AuthService
 {
     private readonly Supabase.Client _supabase;
+    private readonly SupabaseSettings _supabaseSettings;
     private bool _initialized;
 
     public GotrueSession? CurrentSession { get; private set; }
@@ -21,13 +24,21 @@ public class AuthService
     public bool IsAuthenticated => CurrentSession?.User != null || _supabase.Auth.CurrentUser != null;
     public string? CurrentEmail => CurrentSession?.User?.Email ?? _supabase.Auth.CurrentUser?.Email;
 
-    public AuthService(Supabase.Client supabase)
+    public AuthService(Supabase.Client supabase, IOptions<SupabaseSettings> supabaseSettings)
     {
         _supabase = supabase;
+        _supabaseSettings = supabaseSettings.Value;
     }
 
     public async Task InitializeAsync()
     {
+        var configurationError = ValidateConfiguration();
+        if (configurationError != null)
+        {
+            _initialized = true;
+            return;
+        }
+
         await EnsureClientReadyAsync();
         CurrentSession ??= _supabase.Auth.CurrentSession;
 
@@ -40,7 +51,11 @@ public class AuthService
 
     public async Task<AuthResult> SignInAsync(string usernameOrEmail, string password)
     {
-        await EnsureClientReadyAsync();
+        var guardResult = await GuardAndInitializeAsync();
+        if (guardResult != null)
+        {
+            return guardResult;
+        }
 
         if (string.IsNullOrWhiteSpace(usernameOrEmail) || string.IsNullOrWhiteSpace(password))
         {
@@ -53,21 +68,32 @@ public class AuthService
             return AuthResult.Failure("We couldn't find that account. Try creating one.");
         }
 
-        var session = await _supabase.Auth.SignIn(email, password);
-        if (session?.User == null)
+        try
         {
-            return AuthResult.Failure("Incorrect username or password.");
-        }
+            var session = await _supabase.Auth.SignIn(email, password);
+            if (session?.User == null)
+            {
+                return AuthResult.Failure("Incorrect username or password.");
+            }
 
-        CurrentSession = session;
-        await LoadProfileAsync();
-        AuthStateChanged?.Invoke();
-        return AuthResult.Success();
+            CurrentSession = session;
+            await LoadProfileAsync();
+            AuthStateChanged?.Invoke();
+            return AuthResult.Success();
+        }
+        catch
+        {
+            return AuthResult.Failure("We couldn't reach the sign-in service. Try again in a moment.");
+        }
     }
 
     public async Task<AuthResult> SignUpAsync(string email, string username, string password)
     {
-        await EnsureClientReadyAsync();
+        var guardResult = await GuardAndInitializeAsync();
+        if (guardResult != null)
+        {
+            return guardResult;
+        }
 
         if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
         {
@@ -82,22 +108,33 @@ public class AuthService
             }
         };
 
-        var session = await _supabase.Auth.SignUp(email, password, signUpOptions);
-        if (session?.User == null)
+        try
         {
-            return AuthResult.Failure("We couldn't create your account yet. Try again.");
-        }
+            var session = await _supabase.Auth.SignUp(email, password, signUpOptions);
+            if (session?.User == null)
+            {
+                return AuthResult.Failure("We couldn't create your account yet. Try again.");
+            }
 
-        CurrentSession = session;
-        await CreateProfileAsync(email, username);
-        await LoadProfileAsync();
-        AuthStateChanged?.Invoke();
-        return AuthResult.Success();
+            CurrentSession = session;
+            await CreateProfileAsync(email, username);
+            await LoadProfileAsync();
+            AuthStateChanged?.Invoke();
+            return AuthResult.Success();
+        }
+        catch
+        {
+            return AuthResult.Failure("We couldn't reach the sign-up service. Check your connection and try again.");
+        }
     }
 
     public async Task<AuthResult> UpdatePasswordAsync(string newPassword)
     {
-        await EnsureClientReadyAsync();
+        var guardResult = await GuardAndInitializeAsync();
+        if (guardResult != null)
+        {
+            return guardResult;
+        }
 
         if (string.IsNullOrWhiteSpace(newPassword))
         {
@@ -109,14 +146,21 @@ public class AuthService
             return AuthResult.Failure("Log in before updating your password.");
         }
 
-        var result = await _supabase.Auth.Update(new UserAttributes
+        try
         {
-            Password = newPassword
-        });
+            var result = await _supabase.Auth.Update(new UserAttributes
+            {
+                Password = newPassword
+            });
 
-        return result == null
-            ? AuthResult.Failure("Password change was not saved.")
-            : AuthResult.Success();
+            return result == null
+                ? AuthResult.Failure("Password change was not saved.")
+                : AuthResult.Success();
+        }
+        catch
+        {
+            return AuthResult.Failure("We couldn't reach the update service. Try again in a moment.");
+        }
     }
 
     public async Task SignOutAsync()
@@ -145,6 +189,35 @@ public class AuthService
 
         var match = response.Models.FirstOrDefault();
         return match?.Email;
+    }
+
+    private async Task<AuthResult?> GuardAndInitializeAsync()
+    {
+        var configurationError = ValidateConfiguration();
+        if (configurationError != null)
+        {
+            return AuthResult.Failure(configurationError);
+        }
+
+        try
+        {
+            await EnsureClientReadyAsync();
+            return null;
+        }
+        catch
+        {
+            return AuthResult.Failure("We couldn't reach the authentication service. Please try again later.");
+        }
+    }
+
+    private string? ValidateConfiguration()
+    {
+        if (_supabaseSettings.IsConfigured)
+        {
+            return null;
+        }
+
+        return "Online accounts are unavailable because Supabase credentials are missing.";
     }
 
     private async Task CreateProfileAsync(string email, string username)
