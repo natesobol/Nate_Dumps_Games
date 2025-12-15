@@ -27,7 +27,13 @@ public class ProfileService
             return;
         }
 
-        var user = _supabase.Auth.CurrentUser ?? throw new InvalidOperationException("Not authenticated.");
+        var user = _supabase.Auth.CurrentUser;
+        if (user is null)
+        {
+            // Not authenticated - operate in guest mode without loading profile from Supabase.
+            return;
+        }
+
         Guid.TryParse(user.Id, out var userId);
 
         var profileResponse = await _supabase.From<TriviaProfileRow>()
