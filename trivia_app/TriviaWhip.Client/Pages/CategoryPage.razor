@@ -12,7 +12,11 @@
         <p class="text-danger">@_error</p>
     }
     <div class="category-grid">
-        @if (_categories is null)
+        @if (_notAuthenticated)
+        {
+            <p class="text-danger">Please log in to view and select categories.</p>
+        }
+        else if (_categories is null)
         {
             <p>Loading categories...</p>
         }
@@ -51,6 +55,7 @@
 
 @code {
     private bool _initialized;
+    private bool _notAuthenticated = false;
     private List<CategoryGroup>? _categories;
     private string? _error = null;
 
@@ -59,8 +64,15 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await EnsureLoadedAsync();
-        await LoadCategories();
+        try
+        {
+            await EnsureLoadedAsync();
+            await LoadCategories();
+        }
+        catch (InvalidOperationException ex) when (ex.Message.Contains("Not authenticated"))
+        {
+            _notAuthenticated = true;
+        }
     }
 
     private async Task EnsureLoadedAsync()

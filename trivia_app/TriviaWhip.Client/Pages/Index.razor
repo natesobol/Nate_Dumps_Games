@@ -5,39 +5,50 @@
 @inject NavigationManager Nav
 @implements IDisposable
 
-<div class="container">
-<div class="title-hero" style="background-image:url('@_titleBackground')">
-    <div class="title-overlay">
-        <div class="hero-meta">
-            <img class="avatar-display" src="@AvatarImage" alt="Selected avatar" />
-            <div>
-                <div class="hero-title">Trivia Whip</div>
-                <div class="hero-subtitle">@ProfileService.Current.Level.ToString("N0") XP Level • @_progressLabel</div>
-                <div class="buff-strip">
-                    <img src="@IdolIcon" class="idol-icon" alt="Idol" title="Current idol" />
-                    @foreach (var buffIcon in BuffIcons)
-                    {
-                        <img src="@buffIcon" class="buff-icon" alt="Equipped buff" />
-                    }
+@if (_notAuthenticated)
+{
+    <div class="container">
+        <div class="main-card">
+            <h2>Welcome to Trivia Whip!</h2>
+            <p>Please log in to access your profile and play the game.</p>
+        </div>
+    </div>
+}
+else
+{
+    <div class="container">
+    <div class="title-hero" style="background-image:url('@_titleBackground')">
+        <div class="title-overlay">
+            <div class="hero-meta">
+                <img class="avatar-display" src="@AvatarImage" alt="Selected avatar" />
+                <div>
+                    <div class="hero-title">Trivia Whip</div>
+                    <div class="hero-subtitle">@ProfileService.Current.Level.ToString("N0") XP Level • @_progressLabel</div>
+                    <div class="buff-strip">
+                        <img src="@IdolIcon" class="idol-icon" alt="Idol" title="Current idol" />
+                        @foreach (var buffIcon in BuffIcons)
+                        {
+                            <img src="@buffIcon" class="buff-icon" alt="Equipped buff" />
+                        }
+                    </div>
                 </div>
             </div>
+            <button class="play-button" @onclick="StartGame">
+                <img src="@AssetCatalog.GetAssetPath("play-button.png")" alt="Play" />
+            </button>
         </div>
-        <button class="play-button" @onclick="StartGame">
-            <img src="@AssetCatalog.GetAssetPath("play-button.png")" alt="Play" />
-        </button>
     </div>
-</div>
 
-<div class="main-card">
-    <div class="stat-grid">
-        <div class="stat-card">
-            <strong>Coins</strong>
-            <div class="stat-row">
-                <img class="icon" src="@AssetCatalog.GetAssetPath("coinico.png")" alt="Coins" />
-                <span>@ProfileService.Current.Coins</span>
+    <div class="main-card">
+        <div class="stat-grid">
+            <div class="stat-card">
+                <strong>Coins</strong>
+                <div class="stat-row">
+                    <img class="icon" src="@AssetCatalog.GetAssetPath("coinico.png")" alt="Coins" />
+                    <span>@ProfileService.Current.Coins</span>
+                </div>
             </div>
-        </div>
-        <div class="stat-card">
+            <div class="stat-card">
             <strong>Progress</strong>
             <div class="progress-bar" title="Progress to next milestone">
                 <span style="width:@ProgressPercent%"></span>
@@ -126,12 +137,22 @@ ProfileService.Current.Milestones.LastOrDefault(300));
             : CategoryCatalog.GetCategoryDisplay(slug);
     }
 
+
+    private bool _notAuthenticated = false;
+
     protected override async Task OnInitializedAsync()
     {
-        await EnsureLoadedAsync();
-        GameEngine.StateChanged += OnChanged;
-        var rng = new Random();
-        _titleBackground = AssetCatalog.GetRandomTitleBackground(rng);
+        try
+        {
+            await EnsureLoadedAsync();
+            GameEngine.StateChanged += OnChanged;
+            var rng = new Random();
+            _titleBackground = AssetCatalog.GetRandomTitleBackground(rng);
+        }
+        catch (InvalidOperationException ex) when (ex.Message.Contains("Not authenticated"))
+        {
+            _notAuthenticated = true;
+        }
     }
 
     private async Task EnsureLoadedAsync()
