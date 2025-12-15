@@ -5,22 +5,23 @@ using System.Threading.Tasks;
 using Supabase;
 using Supabase.Gotrue;
 using TriviaWhip.Shared.Models;
+using GotrueSession = Supabase.Gotrue.Session;
 
 namespace TriviaWhip.Client.Services;
 
 public class AuthService
 {
-    private readonly Client _supabase;
+    private readonly Supabase.Client _supabase;
     private bool _initialized;
 
-    public Session? CurrentSession { get; private set; }
+    public GotrueSession? CurrentSession { get; private set; }
     public ProfileRow? Profile { get; private set; }
     public event Action? AuthStateChanged;
 
     public bool IsAuthenticated => CurrentSession?.User != null || _supabase.Auth.CurrentUser != null;
     public string? CurrentEmail => CurrentSession?.User?.Email ?? _supabase.Auth.CurrentUser?.Email;
 
-    public AuthService(Client supabase)
+    public AuthService(Supabase.Client supabase)
     {
         _supabase = supabase;
     }
@@ -159,7 +160,6 @@ public class AuthService
         var profileRow = new ProfileRow
         {
             Id = id,
-            ProfileId = id,
             Email = email,
             Name = username
         };

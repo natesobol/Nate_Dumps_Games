@@ -52,7 +52,7 @@
 @code {
     private bool _initialized;
     private List<CategoryGroup>? _categories;
-    private string? _error;
+    private string? _error = null;
 
     private record CategoryGroup(string Key, string Display, string Icon, List<SubcategoryItem> Subcategories);
     private record SubcategoryItem(string Key, string Icon, string Display);

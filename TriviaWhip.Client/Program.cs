@@ -12,9 +12,9 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.
 builder.Services.AddSingleton(provider =>
 {
     var config = provider.GetRequiredService<IConfiguration>();
-    return new Client(
-        config["Supabase:Url"],
-        config["Supabase:AnonKey"]);
+    return new Supabase.Client(
+        config["Supabase:Url"] ?? string.Empty,
+        config["Supabase:AnonKey"] ?? string.Empty);
 });
 builder.Services.AddScoped<QuestionService>();
 builder.Services.AddScoped<SettingsService>();

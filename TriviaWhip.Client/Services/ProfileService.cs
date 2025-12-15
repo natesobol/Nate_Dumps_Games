@@ -6,14 +6,14 @@ namespace TriviaWhip.Client.Services;
 
 public class ProfileService
 {
-    private readonly Client _supabase;
+    private readonly Supabase.Client _supabase;
     private bool _initialized;
 
     public Profile Current { get; private set; } = new();
     public Settings CurrentSettings { get; private set; } = new();
     public event Action? Changed;
 
-    public ProfileService(Client supabase)
+    public ProfileService(Supabase.Client supabase)
     {
         _supabase = supabase;
         Current.Milestones = BuildMilestones();
@@ -28,9 +28,10 @@ public class ProfileService
         }
 
         var user = _supabase.Auth.CurrentUser ?? throw new InvalidOperationException("Not authenticated.");
+        Guid.TryParse(user.Id, out var userId);
 
         var profileResponse = await _supabase.From<TriviaProfileRow>()
-            .Where(row => row.ProfileId == user.Id)
+            .Where(row => row.ProfileId == userId)
             .Get();
 
         var row = profileResponse.Models.FirstOrDefault();
@@ -39,7 +40,7 @@ public class ProfileService
             var defaultSettings = BuildDefaultSettings();
             row = new TriviaProfileRow
             {
-                ProfileId = user.Id,
+                ProfileId = userId,
                 TotalCoins = Current.Coins,
                 Lives = (short)Current.Lives,
                 Settings = defaultSettings,
@@ -65,14 +66,14 @@ public class ProfileService
 
         RecalculateRatios();
 
+        Guid.TryParse(user.Id, out var userId);
         var settingsPayload = BuildSettingsEnvelope();
 
         var row = new TriviaProfileRow
         {
-            ProfileId = user.Id,
+            ProfileId = userId,
             TotalCoins = Current.Coins,
-            CoinsSpentStore = 0,
-            CoinsSpentGame = 0,
+
             BuffCoinMultiplier = ConvertToStoredMultiplier(Current.Buffs.CoinMultiplier),
             BuffCorrectMultiplier = ConvertToStoredMultiplier(Current.Buffs.CorrectMultiplier),
             BuffSkipDiscount = ConvertToStoredMultiplier(Current.Buffs.SkipCostMultiplier),
