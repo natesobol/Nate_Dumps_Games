@@ -3,13 +3,13 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="refresh" content="0; url=/" />
+    <meta http-equiv="refresh" content="0; url=/trivia_app/TriviaWhip.Client/wwwroot/" />
     <link rel="stylesheet" href="css/html-unified.css">
     <script>
         const redirectTarget = window.location.pathname + window.location.search + window.location.hash;
         sessionStorage.setItem('triviawhip-redirect', redirectTarget);
         // Fallback redirect for browsers that ignore meta refresh
-        window.location.replace('/');
+        window.location.replace('/trivia_app/TriviaWhip.Client/wwwroot/');
     </script>
     <title>Redirecting...</title>
 </head>
@@ -22,7 +22,7 @@
             </div>
             <nav class="sidebar-nav">
                 <a class="primary" href="/">Return home</a>
-                <a href="/TriviaWhip.Client/wwwroot/index.html">Launch app</a>
+                <a href="/trivia_app/TriviaWhip.Client/wwwroot/index.html">Launch app</a>
             </nav>
         </aside>
         <main class="main-content">

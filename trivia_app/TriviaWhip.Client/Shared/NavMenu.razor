@@ -5,7 +5,7 @@
 @implements IDisposable
 
 <nav class="nav-menu">
-    <a href="/" class="brand">Trivia Whip</a>
+    <a href="./" class="brand">Trivia Whip</a>
 
     <div class="auth-entry">
         @if (!AuthService.IsAuthenticated)
@@ -55,7 +55,7 @@
         }
         else
         {
-            <NavLink class="account-pill" href="/account">
+            <NavLink class="account-pill" href="account">
                 <span class="avatar-letter">@UserInitial</span>
                 <div class="account-meta">
                     <span class="eyebrow">Account</span>
@@ -66,12 +66,12 @@
     </div>
 
     <ul>
-        <li><NavLink href="/" Match="NavLinkMatch.All">Title</NavLink></li>
-        <li><NavLink href="/categories">Categories</NavLink></li>
-        <li><NavLink href="/settings">Settings</NavLink></li>
-        <li><NavLink href="/store">Store</NavLink></li>
-        <li><NavLink href="/leaderboard">Leaderboard</NavLink></li>
-        <li><NavLink href="/feedback">Feedback</NavLink></li>
+        <li><NavLink href="./" Match="NavLinkMatch.All">Title</NavLink></li>
+        <li><NavLink href="categories">Categories</NavLink></li>
+        <li><NavLink href="settings">Settings</NavLink></li>
+        <li><NavLink href="store">Store</NavLink></li>
+        <li><NavLink href="leaderboard">Leaderboard</NavLink></li>
+        <li><NavLink href="feedback">Feedback</NavLink></li>
     </ul>
 </nav>
 

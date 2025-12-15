@@ -3,44 +3,67 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Trivia Whip Status</title>
-  <link rel="stylesheet" href="./TriviaWhip.Client/wwwroot/css/html-unified.css">
+  <title>Trivia Hub</title>
+  <link rel="stylesheet" href="./trivia_app/TriviaWhip.Client/wwwroot/css/html-unified.css">
 </head>
 <body>
   <div class="page-shell">
     <aside class="sidebar">
       <div>
         <h1>Trivia Whip</h1>
-        <small>Unified web styles</small>
+        <small>All in one place</small>
       </div>
       <nav class="sidebar-nav">
-        <a class="primary" href="./TriviaWhip.Client/wwwroot/index.html">Open the App</a>
-        <a href="README.md">Project README</a>
-        <a href="https://github.com/" target="_blank" rel="noreferrer">Repository Host</a>
+        <a class="primary" href="./trivia_app/TriviaWhip.Client/wwwroot/index.html">Launch Trivia App</a>
+        <a href="./trivia_app/README.md">Project README</a>
       </nav>
+      <div class="status-meta">
+        <div class="meta-tile">
+          <div class="meta-label">Experience</div>
+          <div class="meta-value">Ad-free, base game unlocked</div>
+        </div>
+        <div class="meta-tile">
+          <div class="meta-label">Extras</div>
+          <div class="meta-value">Expansions & cosmetics only</div>
+        </div>
+      </div>
     </aside>
     <main class="main-content">
       <div class="status-card">
-        <h1>Trivia Whip is Running</h1>
-        <p>This page confirms the static host is up and serving the unified styles used across the HTML shell and Blazor app.</p>
+        <p class="eyebrow">Welcome to the hub</p>
+        <h1>Your gateway to the Trivia Whip app</h1>
+        <p>
+          Everything related to the trivia experience now lives in a dedicated
+          <strong>trivia_app</strong> folder, keeping the codebase tidy while preserving the sleek,
+          shadowed gradients that define the game.
+        </p>
         <div class="status-meta">
           <div class="meta-tile">
-            <div class="meta-label">Environment</div>
-            <div class="meta-value">Web Assembly + Static HTML</div>
+            <div class="meta-label">Play style</div>
+            <div class="meta-value">No ads, no lockouts</div>
           </div>
           <div class="meta-tile">
-            <div class="meta-label">Theme</div>
-            <div class="meta-value">Pleasant Compact (Unified)</div>
+            <div class="meta-label">Paid content</div>
+            <div class="meta-value">Optional expansions & cosmetics</div>
           </div>
           <div class="meta-tile">
-            <div class="meta-label">Status</div>
-            <div class="meta-value">Online</div>
+            <div class="meta-label">Access</div>
+            <div class="meta-value">Jump in instantly from this page</div>
           </div>
         </div>
         <div class="status-actions">
-          <a class="btn btn-primary" href="./TriviaWhip.Client/wwwroot/index.html">Launch Trivia Whip</a>
-          <a class="btn btn-secondary" href="README.md">Read project notes</a>
+          <a class="btn btn-primary" href="./trivia_app/TriviaWhip.Client/wwwroot/index.html">Start playing</a>
+          <a class="btn btn-secondary" href="./trivia_app/README.md">Explore the app docs</a>
         </div>
+      </div>
+      <div class="status-card">
+        <h2>How we keep Trivia Whip fair</h2>
+        <ul>
+          <li>Every base game mode is fully unlocked with zero ads or trackers.</li>
+          <li>Only expansions and cosmetic flair carry a price tag—core trivia stays free.</li>
+          <li>Dark, immersive styling with gentle gradients and layered shadows to keep focus on play.</li>
+          <li>Direct links to all assets now live under <code>trivia_app/</code> for predictable hosting paths.</li>
+        </ul>
       </div>
     </main>
   </div>

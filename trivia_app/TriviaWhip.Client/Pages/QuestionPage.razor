@@ -8,7 +8,7 @@
 <div class="container">
 @if (GameEngine.CurrentQuestion is null || GameEngine.CurrentSession is null || GameEngine.CurrentSession.IsComplete)
 {
-    <p class="text-muted">No active game. <a href="/">Return to title.</a></p>
+    <p class="text-muted">No active game. <a href="./">Return to title.</a></p>
 }
 else
 {
@@ -69,7 +69,7 @@ else
 
         <div class="helper-row">
             <img class="icon" src="@AssetCatalog.GetAssetPath("warning.png")" alt="Report" />
-            <a href="/feedback" class="text-muted">Report a question</a>
+            <a href="feedback" class="text-muted">Report a question</a>
         </div>
     </div>
 }
